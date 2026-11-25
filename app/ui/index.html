@@ -144,20 +144,18 @@ code{background:color-mix(in srgb,var(--text-primary) 7%,transparent);padding:1p
 .leaflet-control-attribution a{color:var(--muted)!important}
 .leaflet-bar a{background:var(--bg-elevated)!important;color:var(--ink)!important;border-color:var(--line)!important}
 .pin{width:22px;height:22px;border-radius:50%;background:var(--accent-primary);border:3px solid #fff;box-shadow:0 0 0 6px color-mix(in srgb,var(--accent-primary) 25%,transparent),0 0 22px color-mix(in srgb,var(--accent-primary) 90%,transparent)}
-/* --- Mapa OpenStreetMap con estética Vice City ---
-   1) Filtro SVG #vice-tiles (está al principio del <body>): una curva de tonos que deja los nombres de
-      calles en BLANCO (con un borde oscuro fino que los recorta), las calles en un tono medio más claro
-      que las manzanas, las avenidas todavía más claras, y el fondo y las manzanas bien oscuros.
-      Es un filtro de color puro: no aplica desenfoque, así que los tiles se ven nítidos.
-   2) Una capa de tinte con mix-blend-mode:color pinta magenta→violeta→cian sin tocar la luminosidad.
-   3) Solo se filtran los tiles: el pin y el círculo quedan intactos encima.
-   Para ajustar a gusto: --mapa-brillo (1 = normal) y --mapa-tinte (0 = sin color, 1 = color pleno). */
-#mapa{--mapa-brillo:1;--mapa-tinte:.55}
-.tiles-vice{filter:url(#vice-tiles) brightness(var(--mapa-brillo))}
+/* --- Mapa con tiles gratuitos de CARTO (sin clave) y estética Vice City ---
+   Neón:  CARTO "dark_all" (ya viene oscuro). Se le sube brillo y contraste para que los nombres
+          de calles queden casi blancos, y encima va una capa de tinte (mix-blend-mode:color) que
+          pinta magenta→violeta→cian sin tocar la luminosidad.
+   Claro: CARTO "voyager", tal cual, sin filtro ni tinte.
+   Solo se filtran los tiles: el pin y el círculo quedan intactos encima.
+   Para ajustar a gusto: --mapa-brillo / --mapa-contraste (1 = normal) y --mapa-tinte (0 = sin color, 1 = pleno). */
+#mapa{--mapa-brillo:1.35;--mapa-contraste:1.2;--mapa-tinte:.5}
+.tiles-vice{filter:brightness(var(--mapa-brillo)) contrast(var(--mapa-contraste))}
 .leaflet-tinte-pane{mix-blend-mode:color;pointer-events:none}
 .tinte-vice{position:absolute;left:0;top:0;opacity:var(--mapa-tinte);
   background:linear-gradient(135deg,var(--accent-primary) 0%,var(--accent-tertiary) 50%,var(--accent-secondary) 100%)}
-#mapa.modo-claro .tiles-vice{filter:none}
 #mapa.modo-claro .leaflet-tinte-pane{display:none}
 .circulo-radio{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--accent-primary) 95%,transparent)) drop-shadow(0 0 14px color-mix(in srgb,var(--accent-primary) 45%,transparent))}
 .ctl-estilo{background:color-mix(in srgb,var(--bg-elevated) 88%,transparent)!important;border:1px solid var(--line2)!important;border-radius:10px!important;overflow:hidden;display:flex}
@@ -365,20 +363,6 @@ input[type=color]{width:52px;height:38px;border:1px solid var(--line2);border-ra
 <script src="/temas.js"></script>
 </head>
 <body>
-<!-- Filtro del mapa (estética Vice City sobre los tiles de OpenStreetMap). Ver comentario en el CSS de .tiles-vice -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="vice-tiles" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
-  <!-- a) pasa a gris dando más peso al azul: así las calles blancas y el fondo beige se separan bien -->
-  <feColorMatrix in="SourceGraphic" type="matrix" values="0.2 0.3 0.5 0 0  0.2 0.3 0.5 0 0  0.2 0.3 0.5 0 0  0 0 0 1 0" result="gris"/>
-  <!-- b) curva de tonos: letras (oscuras en OSM) → BLANCAS · su halo y las calles → tono medio · fondo y manzanas → muy oscuro -->
-  <feComponentTransfer in="gris" result="curva">
-    <feFuncR type="table" tableValues="1.000 0.999 0.999 0.998 0.997 0.997 0.996 0.995 0.995 0.994 0.993 0.993 0.992 0.991 0.991 0.990 0.989 0.989 0.988 0.987 0.987 0.986 0.985 0.985 0.984 0.983 0.983 0.982 0.981 0.981 0.980 0.970 0.959 0.949 0.938 0.928 0.918 0.907 0.897 0.886 0.876 0.866 0.855 0.845 0.834 0.824 0.814 0.803 0.793 0.782 0.772 0.762 0.751 0.741 0.730 0.720 0.700 0.680 0.660 0.640 0.620 0.600 0.580 0.560 0.540 0.520 0.500 0.480 0.460 0.440 0.420 0.402 0.384 0.366 0.348 0.330 0.306 0.282 0.258 0.234 0.210 0.193 0.177 0.160 0.143 0.127 0.110 0.101 0.093 0.084 0.076 0.067 0.059 0.050 0.107 0.163 0.220 0.290 0.360 0.430 0.500"/>
-    <feFuncG type="table" tableValues="1.000 0.999 0.999 0.998 0.997 0.997 0.996 0.995 0.995 0.994 0.993 0.993 0.992 0.991 0.991 0.990 0.989 0.989 0.988 0.987 0.987 0.986 0.985 0.985 0.984 0.983 0.983 0.982 0.981 0.981 0.980 0.970 0.959 0.949 0.938 0.928 0.918 0.907 0.897 0.886 0.876 0.866 0.855 0.845 0.834 0.824 0.814 0.803 0.793 0.782 0.772 0.762 0.751 0.741 0.730 0.720 0.700 0.680 0.660 0.640 0.620 0.600 0.580 0.560 0.540 0.520 0.500 0.480 0.460 0.440 0.420 0.402 0.384 0.366 0.348 0.330 0.306 0.282 0.258 0.234 0.210 0.193 0.177 0.160 0.143 0.127 0.110 0.101 0.093 0.084 0.076 0.067 0.059 0.050 0.107 0.163 0.220 0.290 0.360 0.430 0.500"/>
-    <feFuncB type="table" tableValues="1.000 0.999 0.999 0.998 0.997 0.997 0.996 0.995 0.995 0.994 0.993 0.993 0.992 0.991 0.991 0.990 0.989 0.989 0.988 0.987 0.987 0.986 0.985 0.985 0.984 0.983 0.983 0.982 0.981 0.981 0.980 0.970 0.959 0.949 0.938 0.928 0.918 0.907 0.897 0.886 0.876 0.866 0.855 0.845 0.834 0.824 0.814 0.803 0.793 0.782 0.772 0.762 0.751 0.741 0.730 0.720 0.700 0.680 0.660 0.640 0.620 0.600 0.580 0.560 0.540 0.520 0.500 0.480 0.460 0.440 0.420 0.402 0.384 0.366 0.348 0.330 0.306 0.282 0.258 0.234 0.210 0.193 0.177 0.160 0.143 0.127 0.110 0.101 0.093 0.084 0.076 0.067 0.059 0.050 0.107 0.163 0.220 0.290 0.360 0.430 0.500"/>
-  </feComponentTransfer>
-  <!-- c) las avenidas de OSM son amarillas/naranjas: se les suma brillo para que se destaquen como las calles -->
-  <feColorMatrix in="SourceGraphic" type="matrix" values="1.5 0 -1.5 0 0  1.5 0 -1.5 0 0  1.5 0 -1.5 0 0  0 0 0 0 1" result="calido"/>
-  <feComposite in="curva" in2="calido" operator="arithmetic" k1="0" k2="1" k3="1" k4="0"/>
-</filter></svg>
 <aside>
   <div class="marca">Postuladorsito</div>
   <div class="marca-sub">tu búsqueda de laburo, en piloto automático</div>
@@ -848,11 +832,14 @@ function iniciarMapa(){
   const centro=[-34.7615,-58.4006];   // Lomas de Zamora
   // zoomSnap:1 → siempre zoom entero: los tiles se muestran a tamaño nativo, sin reescalar (sin borroneo)
   S.mapa=L.map("mapa",{zoomControl:true,attributionControl:true,zoomSnap:1,zoomDelta:1}).setView(centro,14);
-  // OpenStreetMap estándar: gratis y sin clave. La atribución es obligatoria.
-  // Sin detectRetina: OSM no tiene tiles @2x y bajaría un nivel de zoom (letras más chicas).
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{
-    maxZoom:19, maxNativeZoom:19, className:"tiles-vice", crossOrigin:false,
-    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'}).addTo(S.mapa);
+  // Tiles de CARTO: gratis y sin clave (tile.openstreetmap.org bloquea pedidos desde hosts como Render).
+  // {s} = subdominios a–d · {r} = "@2x" en pantallas retina (CARTO sí tiene tiles HD). La atribución es obligatoria.
+  const ATRIB='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
+  const opcTiles=extra=>Object.assign({subdomains:"abcd",maxZoom:20,maxNativeZoom:20,attribution:ATRIB},extra);
+  const CAPAS={
+    neon: L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",opcTiles({className:"tiles-vice"})),
+    claro:L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",opcTiles({className:"tiles-claro"}))
+  };
   // Capa de tinte Vice City: va entre los tiles (z 200) y el círculo/pin (z 400/600), siempre del tamaño de la vista
   const tinte=S.mapa.createPane("tinte"); tinte.style.zIndex=250;
   const capaTinte=L.DomUtil.create("div","tinte-vice",tinte);
@@ -863,7 +850,9 @@ function iniciarMapa(){
   const Estilo=L.Control.extend({options:{position:"topright"},onAdd(){
     const d=L.DomUtil.create("div","ctl-estilo leaflet-bar");d.innerHTML='<button data-m="neon">Neón</button><button data-m="claro">Claro</button>';
     L.DomEvent.disableClickPropagation(d);
-    const poner=m=>{$("#mapa").classList.toggle("modo-claro",m==="claro");d.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.m===m));
+    const poner=m=>{m=m==="claro"?"claro":"neon";
+      for(const [k,capa] of Object.entries(CAPAS)){if(k===m){if(!S.mapa.hasLayer(capa))capa.addTo(S.mapa);}else if(S.mapa.hasLayer(capa))S.mapa.removeLayer(capa);}
+      $("#mapa").classList.toggle("modo-claro",m==="claro");d.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.m===m));
       try{localStorage.setItem("mapa_estilo",m);}catch(e){}};
     d.querySelectorAll("button").forEach(b=>b.onclick=()=>poner(b.dataset.m));
     S.ponerEstiloMapa=poner;
