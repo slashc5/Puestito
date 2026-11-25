@@ -1,0 +1,309 @@
+[
+ {
+  "nombre": "Otaku Corner (DEMO)",
+  "rubro": "tiendas de anime",
+  "zona": "Lomas de Zamora",
+  "direccion": "Laprida 410, Lomas de Zamora",
+  "email": "hola@otakucorner.demo",
+  "telefono": "011 15-2345-6789",
+  "web": "otakucorner.demo",
+  "instagram": "https://instagram.com/otakucorner",
+  "fuente_id": "demo2:0"
+ },
+ {
+  "nombre": "Manga Planet (DEMO)",
+  "rubro": "tiendas de anime",
+  "zona": "Lomas de Zamora",
+  "direccion": "Boedo 220, Lomas de Zamora",
+  "email": "",
+  "telefono": "+54 9 11 3456-7890",
+  "web": "",
+  "instagram": "https://instagram.com/mangaplanet",
+  "fuente_id": "demo2:1"
+ },
+ {
+  "nombre": "Comiquería del Sur (DEMO)",
+  "rubro": "comiquería",
+  "zona": "Lomas de Zamora",
+  "direccion": "Gorriti 150, Lomas de Zamora",
+  "email": "",
+  "telefono": "",
+  "web": "",
+  "instagram": "https://instagram.com/comiqueriasur",
+  "fuente_id": "demo2:2"
+ },
+ {
+  "nombre": "Nekko Store (DEMO)",
+  "rubro": "tiendas de anime",
+  "zona": "Temperley",
+  "direccion": "Av. Meeks 210, Temperley",
+  "email": "contacto@nekko.demo",
+  "telefono": "",
+  "web": "nekko.demo",
+  "instagram": "",
+  "fuente_id": "demo2:3"
+ },
+ {
+  "nombre": "Kawaii Box (DEMO)",
+  "rubro": "tienda de coleccionables y figuras",
+  "zona": "Temperley",
+  "direccion": "9 de Julio 330, Temperley",
+  "email": "",
+  "telefono": "11 4567-1234",
+  "web": "",
+  "instagram": "https://instagram.com/kawaiibox",
+  "fuente_id": "demo2:4"
+ },
+ {
+  "nombre": "La Esquina Bar (DEMO)",
+  "rubro": "bar",
+  "zona": "Temperley",
+  "direccion": "Av. Meeks 500, Temperley",
+  "email": "rrhh@laesquina.demo",
+  "telefono": "11 2222-3333",
+  "web": "laesquina.demo",
+  "instagram": "https://instagram.com/laesquinabar",
+  "fuente_id": "demo2:5",
+  "demo_senal": {
+   "puntaje": 70,
+   "senal": "…estamos buscando mozos y bachero para fines de semana…",
+   "url": "https://laesquina.demo/trabaja",
+   "email_rrhh": "rrhh@laesquina.demo"
+  }
+ },
+ {
+  "nombre": "Cervecería Lúpulo Sur (DEMO)",
+  "rubro": "cervecería",
+  "zona": "Temperley",
+  "direccion": "Av. Almirante Brown 4100, Temperley",
+  "email": "",
+  "telefono": "011 15 4444 5555",
+  "web": "",
+  "instagram": "https://instagram.com/lupulosur",
+  "fuente_id": "demo2:6"
+ },
+ {
+  "nombre": "El Andén (DEMO)",
+  "rubro": "bar",
+  "zona": "Lomas de Zamora",
+  "direccion": "Hipólito Yrigoyen 8800, Lomas de Zamora",
+  "email": "eventos@elanden.demo",
+  "telefono": "",
+  "web": "elanden.demo",
+  "instagram": "",
+  "fuente_id": "demo2:7"
+ },
+ {
+  "nombre": "TecnoPunto (DEMO)",
+  "rubro": "local de computación",
+  "zona": "Lomas de Zamora",
+  "direccion": "Laprida 250, Lomas de Zamora",
+  "email": "ventas@tecnopunto.demo",
+  "telefono": "",
+  "web": "tecnopunto.demo",
+  "instagram": "",
+  "fuente_id": "demo2:8"
+ },
+ {
+  "nombre": "CeluFix (DEMO)",
+  "rubro": "local de celulares y accesorios",
+  "zona": "Lomas de Zamora",
+  "direccion": "Sáenz 640, Lomas de Zamora",
+  "email": "",
+  "telefono": "11 6789-1234",
+  "web": "",
+  "instagram": "https://instagram.com/celufix",
+  "fuente_id": "demo2:9"
+ },
+ {
+  "nombre": "Café Meeks (DEMO)",
+  "rubro": "cafetería",
+  "zona": "Temperley",
+  "direccion": "Av. Meeks 120, Temperley",
+  "email": "",
+  "telefono": "11 7890-1234",
+  "web": "cafemeeks.demo",
+  "instagram": "https://instagram.com/cafemeeks",
+  "fuente_id": "demo2:10",
+  "demo_senal": {
+   "puntaje": 45,
+   "senal": "…dejanos tu cv en la caja o por mensaje…",
+   "url": ""
+  }
+ },
+ {
+  "nombre": "Grano & Taza (DEMO)",
+  "rubro": "cafetería",
+  "zona": "Adrogué",
+  "direccion": "Esteban Adrogué 1100, Adrogué",
+  "email": "hola@granoytaza.demo",
+  "telefono": "",
+  "web": "granoytaza.demo",
+  "instagram": "https://instagram.com/granoytaza",
+  "fuente_id": "demo2:11"
+ },
+ {
+  "nombre": "SurDev Software (DEMO)",
+  "rubro": "empresa de desarrollo de software",
+  "zona": "Lomas de Zamora",
+  "direccion": "Sáenz 800, Lomas de Zamora",
+  "email": "jobs@surdev.demo",
+  "telefono": "",
+  "web": "surdev.demo",
+  "instagram": "",
+  "fuente_id": "demo2:12",
+  "demo_senal": {
+   "puntaje": 90,
+   "senal": "…careers: busquedas vigentes para soporte it y desarrollo jr…",
+   "url": "https://surdev.demo/careers",
+   "email_rrhh": "jobs@surdev.demo"
+  }
+ },
+ {
+  "nombre": "Pixel Labs (DEMO)",
+  "rubro": "empresa de desarrollo de software",
+  "zona": "Temperley",
+  "direccion": "Av. Almirante Brown 3000, Temperley",
+  "email": "talento@pixellabs.demo",
+  "telefono": "",
+  "web": "pixellabs.demo",
+  "instagram": "",
+  "fuente_id": "demo2:13"
+ },
+ {
+  "nombre": "PC Doctor (DEMO)",
+  "rubro": "servicio técnico de computadoras",
+  "zona": "Lomas de Zamora",
+  "direccion": "Boedo 90, Lomas de Zamora",
+  "email": "",
+  "telefono": "11 8901-2345",
+  "web": "pcdoctor.demo",
+  "instagram": "https://instagram.com/pcdoctor",
+  "fuente_id": "demo2:14",
+  "demo_senal": {
+   "puntaje": 50,
+   "senal": "…buscamos tecnico en reparacion de pc…",
+   "url": ""
+  }
+ },
+ {
+  "nombre": "Moda Sur (DEMO)",
+  "rubro": "local de ropa",
+  "zona": "Lomas de Zamora",
+  "direccion": "Laprida 520, Lomas de Zamora",
+  "email": "rrhh@modasur.demo",
+  "telefono": "",
+  "web": "modasur.demo",
+  "instagram": "https://instagram.com/modasur",
+  "fuente_id": "demo2:15",
+  "demo_senal": {
+   "puntaje": 80,
+   "senal": "…sumate a nuestro equipo de ventas. envianos tu cv a rrhh@modasur.demo…",
+   "url": "https://modasur.demo/trabaja-con-nosotros",
+   "email_rrhh": "rrhh@modasur.demo"
+  }
+ },
+ {
+  "nombre": "Súper Vecino (DEMO)",
+  "rubro": "supermercado",
+  "zona": "Temperley",
+  "direccion": "Av. Meeks 800, Temperley",
+  "email": "",
+  "telefono": "11 2345-6780",
+  "web": "supervecino.demo",
+  "instagram": "",
+  "fuente_id": "demo2:16",
+  "demo_senal": {
+   "puntaje": 25,
+   "senal": "…se busca repositor con disponibilidad horaria…",
+   "url": ""
+  }
+ },
+ {
+  "nombre": "Farmacia Central Sur (DEMO)",
+  "rubro": "farmacia",
+  "zona": "Lomas de Zamora",
+  "direccion": "Hipólito Yrigoyen 9100, Lomas de Zamora",
+  "email": "personal@farmaciacentral.demo",
+  "telefono": "",
+  "web": "farmaciacentral.demo",
+  "instagram": "",
+  "fuente_id": "demo2:17",
+  "demo_senal": {
+   "puntaje": 60,
+   "senal": "…busqueda laboral: auxiliar de atencion al publico…",
+   "url": "https://farmaciacentral.demo/empleos"
+  }
+ },
+ {
+  "nombre": "Distribuidora El Puente (DEMO)",
+  "rubro": "distribuidora mayorista",
+  "zona": "Lomas de Zamora",
+  "direccion": "Camino Negro 2300, Lomas de Zamora",
+  "email": "seleccion@elpuente.demo",
+  "telefono": "",
+  "web": "elpuente.demo",
+  "instagram": "",
+  "fuente_id": "demo2:18",
+  "demo_senal": {
+   "puntaje": 75,
+   "senal": "…seleccion de personal: operarios de deposito…",
+   "url": "https://elpuente.demo/rrhh",
+   "email_rrhh": "seleccion@elpuente.demo"
+  }
+ },
+ {
+  "nombre": "Logística Banfield (DEMO)",
+  "rubro": "centro de distribución y logística",
+  "zona": "Banfield",
+  "direccion": "Av. Alsina 1500, Banfield",
+  "email": "rrhh@logbanfield.demo",
+  "telefono": "",
+  "web": "logbanfield.demo",
+  "instagram": "",
+  "fuente_id": "demo2:19"
+ },
+ {
+  "nombre": "Estudio Contable Ríos (DEMO)",
+  "rubro": "estudio contable",
+  "zona": "Temperley",
+  "direccion": "Av. Meeks 330, Temperley",
+  "email": "info@estudiorios.demo",
+  "telefono": "",
+  "web": "estudiorios.demo",
+  "instagram": "",
+  "fuente_id": "demo2:20",
+  "demo_senal": {
+   "puntaje": 35,
+   "senal": "…envie su cv para cubrir puesto administrativo…",
+   "url": ""
+  }
+ },
+ {
+  "nombre": "Kiosco 24 (DEMO)",
+  "rubro": "tiendas y locales comerciales",
+  "zona": "Lomas de Zamora",
+  "direccion": "Laprida 700, Lomas de Zamora",
+  "email": "",
+  "telefono": "11 3333-4444",
+  "web": "kiosco24.demo",
+  "instagram": "",
+  "fuente_id": "demo2:21"
+ },
+ {
+  "nombre": "Burger Sur (DEMO)",
+  "rubro": "restaurante",
+  "zona": "Temperley",
+  "direccion": "Av. Meeks 640, Temperley",
+  "email": "hola@burgersur.demo",
+  "telefono": "",
+  "web": "burgersur.demo",
+  "instagram": "",
+  "fuente_id": "demo2:22",
+  "demo_senal": {
+   "puntaje": 55,
+   "senal": "…sumate al equipo: cajeros y cocina, turno noche…",
+   "url": "https://burgersur.demo/sumate"
+  }
+ }
+]

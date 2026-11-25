@@ -1,0 +1,12 @@
+Hola, ¿qué tal?
+
+Soy {mi_nombre}, vivo en {mi_zona} y estoy buscando trabajo. Les escribo porque me gustaría trabajar en {lugar}. {gancho}.
+
+Les dejo el CV adjunto. Puedo arrancar ya y me acomodo a distintos horarios.
+
+Si necesitan a alguien, ahora o más adelante, me pueden responder por acá o escribirme al {mi_telefono}. Si les resulta más fácil, también paso por el local.
+
+¡Gracias por leer!
+
+{mi_nombre}
+{mi_telefono} · {mi_email}

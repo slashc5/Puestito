@@ -1,0 +1,41 @@
+# ===== Postuladorsito: lo que NUNCA se sube a GitHub =====
+
+# Claves y contraseñas
+.env
+.env.*
+!.env.ejemplo
+
+# Tus datos: base de datos, respaldos, CSV exportados
+datos/*
+!datos/.gitkeep
+
+# Tus CVs (datos personales)
+cvs/*
+!cvs/.gitkeep
+
+# Tu configuración personal (nombre, teléfono, mail). Se sube solo el ejemplo.
+config/config.toml
+config/.respaldo/
+*.bak
+*.tmp
+
+# Datos de la versión web en tu PC (cuentas de prueba y clave de desarrollo)
+# (ya quedan dentro de datos/*, que no se sube)
+
+# Archivos generados (páginas de WhatsApp, .eml)
+salidas/*
+!salidas/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Sistema / editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

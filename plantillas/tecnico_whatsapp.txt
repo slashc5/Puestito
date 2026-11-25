@@ -1,0 +1,1 @@
+Hola, ¿qué tal? Soy {mi_nombre}, de {mi_zona}, y me dedico a la programación. Quería saber si en {lugar} están buscando gente. {gancho}. Si les sirve, les mando el CV por mail. {cv_link_texto}¡Gracias!

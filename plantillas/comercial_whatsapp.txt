@@ -1,0 +1,1 @@
+Hola, ¿qué tal? Soy {mi_nombre}, de {mi_zona}. Estoy buscando trabajo y quería saber si en {lugar} necesitan a alguien. {gancho}. Si les interesa, les paso el CV por acá o por mail. {cv_link_texto}¡Gracias!

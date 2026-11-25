@@ -1,0 +1,19 @@
+# Render Blueprint: Dashboard → New → Blueprint → elegí este repositorio.
+services:
+  - type: web
+    name: postuladorsito
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # 1 proceso con varios hilos: las búsquedas en curso viven en memoria de ese proceso
+    startCommand: gunicorn wsgi:application --workers 1 --threads 8 --timeout 120 --bind 0.0.0.0:$PORT
+    healthCheckPath: /salud
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: SECRET_KEY
+        generateValue: true          # Render genera una clave larga al azar
+      - key: DATABASE_URL
+        sync: false                  # pegá la URL de tu base PostgreSQL (por ejemplo, Neon)
+      - key: CODIGO_INVITACION
+        sync: false                  # inventá un código y pasáselo solo a tus amigos

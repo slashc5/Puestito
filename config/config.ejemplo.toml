@@ -1,0 +1,38 @@
+# ============================================================
+#  Configuración de Postuladorsito  (archivo de EJEMPLO)
+#  La app crea config/config.toml a partir de este archivo la primera vez.
+#  Todo se edita desde la app: Configuración y CVs. Las claves van en .env.
+# ============================================================
+
+[yo]
+nombre   = "Tu Nombre Apellido"
+telefono = "11 5555-5555"
+email    = "tu.mail@gmail.com"
+zona     = "Lomas de Zamora"
+linkedin = ""
+
+[busqueda]
+fuente         = "osm"   # osm | google | demo
+radio_km       = 3       # radio por defecto si no elegís punto en el mapa
+limite         = 10      # máximo de lugares por corrida
+enriquecer_web = true
+pausa_web_seg  = 1.5
+
+[envio]
+modo_mail       = "borrador"   # borrador | enviar | eml
+max_por_tanda   = 10
+max_por_dia     = 25
+pausa_min_seg   = 45
+pausa_max_seg   = 120
+canal_preferido = "auto"       # auto | mail | whatsapp
+
+[cvs]
+defecto = ""
+
+[smtp]
+servidor = "smtp.gmail.com"
+puerto   = 587
+
+[imap]
+servidor = "imap.gmail.com"
+puerto   = 993

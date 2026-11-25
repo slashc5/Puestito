@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Postuladorsito</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%22 stop-color=%22%23ff2e97%22/><stop offset=%221%22 stop-color=%22%239b5cff%22/></linearGradient></defs><rect width=%22100%22 height=%22100%22 rx=%2226%22 fill=%22url(%23g)%22/><text x=%2250%22 y=%2271%22 font-size=%2262%22 font-family=%22Georgia%22 font-style=%22italic%22 font-weight=%22bold%22 text-anchor=%22middle%22 fill=%22white%22>P</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous">
+<style>
+/*
+  VOICE   Vice City de noche, pero herramienta de trabajo: neón con medida, todo legible.
+  IDEA    Un tablero en una terraza de Ocean Drive al anochecer: vidrio oscuro, letreros de neón.
+  PICTURE El mapa con el radio de búsqueda brillando es el corazón de la primera pantalla.
+  COLOUR  Noche violeta profunda; rosa neón (acción), cian eléctrico (mapa/info), violeta (soporte).
+  TYPE    Kaushan Script solo para la marca; Outfit para todo lo demás.
+*/
+:root{
+  /* ===== Variables globales de color (las cambia la pestaña Personalización) ===== */
+  --bg-primary:#07040f; --bg-card:#1c1236; --accent-primary:#ff2e97; --accent-secondary:#22e4ff; --accent-tertiary:#9b5cff;
+  --text-primary:#f5f0fb; --on-accent:#ffffff; --ok:#35e8a8; --warn:#ffb547; --danger:#ff5a76;
+  --glow:1;        /* intensidad del brillo neón: 0 = nada, 1.5 = mucho */
+  --glass:.55;     /* opacidad de las tarjetas: 0.3 = muy transparente, 1 = sólidas */
+  --borde:.10;     /* fuerza de los bordes: 0.05 suaves … 0.5 alto contraste */
+  /* ===== Derivadas (no hace falta tocarlas) ===== */
+  --text-secondary:color-mix(in srgb,var(--text-primary) 66%,var(--bg-primary));
+  --text-dim:color-mix(in srgb,var(--text-primary) 46%,var(--bg-primary));
+  --border-color:color-mix(in srgb,var(--text-primary) calc(var(--borde)*100%),transparent);
+  --border-strong:color-mix(in srgb,var(--text-primary) calc(var(--borde)*175%),transparent);
+  --bg-card-glass:color-mix(in srgb,var(--bg-card) calc(var(--glass)*100%),transparent);
+  --bg-elevated:color-mix(in srgb,var(--bg-card) 93%,var(--text-primary));
+  --accent-glow:color-mix(in srgb,var(--accent-primary) calc(var(--glow)*50%),transparent);
+  --accent2-glow:color-mix(in srgb,var(--accent-secondary) calc(var(--glow)*40%),transparent);
+  --accent-text:color-mix(in srgb,var(--accent-primary) 74%,var(--text-primary));
+  --accent2-text:color-mix(in srgb,var(--accent-secondary) 74%,var(--text-primary));
+  --accent3-text:color-mix(in srgb,var(--accent-tertiary) 74%,var(--text-primary));
+  --glow-p:0 0 calc(var(--glow)*18px) var(--accent-glow); --glow-c:0 0 calc(var(--glow)*18px) var(--accent2-glow);
+  /* alias usados en el resto del CSS */
+  --bg:var(--bg-primary); --glass2:color-mix(in srgb,var(--text-primary) 7.5%,transparent);
+  --line:var(--border-color); --line2:var(--border-strong); --ink:var(--text-primary); --muted:var(--text-secondary); --dim:var(--text-dim);
+  --pink:var(--accent-primary); --pink2:var(--accent-text); --cyan:var(--accent-secondary); --violet:var(--accent-tertiary);
+  --amber:var(--warn); --green:var(--ok); --red:var(--danger);
+  --r:16px; --r2:11px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%}
+body{font:15px/1.5 "Outfit",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);display:flex;overflow:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(900px 520px at 8% -8%, color-mix(in srgb,var(--accent-primary) 22%,transparent), transparent 60%),
+    radial-gradient(800px 600px at 105% 108%, color-mix(in srgb,var(--accent-secondary) 16%,transparent), transparent 60%),
+    radial-gradient(700px 500px at 60% 40%, color-mix(in srgb,var(--accent-tertiary) 10%,transparent), transparent 65%),
+    linear-gradient(180deg,color-mix(in srgb,var(--bg-primary) 88%,var(--accent-tertiary)) 0%,var(--bg-primary) 60%)}
+a{color:var(--cyan)}
+button,select,input,textarea{font:inherit;color:inherit}
+::selection{background:color-mix(in srgb,var(--accent-primary) 35%,transparent)}
+/* ---------- barra lateral ---------- */
+aside{width:236px;flex:none;display:flex;flex-direction:column;padding:20px 14px;background:color-mix(in srgb,var(--bg-primary) 72%,transparent);border-right:1px solid var(--line);backdrop-filter:blur(14px)}
+.marca{font-family:"Kaushan Script",cursive;font-size:29px;line-height:1;padding:4px 10px 6px;color:var(--text-primary);
+  text-shadow:0 0 6px color-mix(in srgb,var(--accent-primary) 90%,transparent),0 0 22px color-mix(in srgb,var(--accent-primary) 55%,transparent),3px 3px 0 color-mix(in srgb,var(--accent-secondary) 55%,transparent);white-space:nowrap}
+.marca-sub{font-size:11.5px;color:var(--muted);padding:0 12px 18px;letter-spacing:.3px}
+nav button{width:100%;display:flex;align-items:center;gap:10px;background:none;border:0;color:var(--muted);padding:10px 12px;border-radius:12px;cursor:pointer;margin-bottom:3px;text-align:left;transition:.18s}
+nav button svg{width:18px;height:18px;flex:none;opacity:.85}
+nav button:hover{background:var(--bg-card-glass);color:var(--ink)}
+nav button.on{color:var(--text-primary);background:linear-gradient(90deg,color-mix(in srgb,var(--accent-primary) 22%,transparent),color-mix(in srgb,var(--accent-tertiary) 12%,transparent));box-shadow:inset 3px 0 0 var(--pink)}
+nav .count{margin-left:auto;background:var(--pink);color:var(--on-accent);border-radius:99px;font-size:11px;padding:1px 7px;font-weight:700;box-shadow:var(--glow-p)}
+.pie{margin-top:auto;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--bg-card-glass);font-size:12.5px;color:var(--muted)}
+.pie b{color:var(--ink);font-weight:600}
+.pie .barra{height:5px;border-radius:9px;background:color-mix(in srgb,var(--text-primary) 8%,transparent);margin:6px 0 10px;overflow:hidden}
+.pie .barra i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink));border-radius:9px}
+/* ---------- contenido ---------- */
+main{flex:1;overflow:auto;padding:28px clamp(16px,3vw,38px) 140px}
+section{animation:entrar .35s ease both}
+@keyframes entrar{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h1{font-size:30px;line-height:1.1;margin:0 0 6px;font-weight:800;letter-spacing:-.3px}
+h1 .neon{background:linear-gradient(90deg,var(--pink),var(--violet) 55%,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--muted);margin:0 0 22px;max-width:820px}
+h2{font-size:13px;letter-spacing:.4px;color:var(--muted);margin:0 0 14px;font-weight:600;display:flex;align-items:center;gap:8px}
+h2 .n{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;background:color-mix(in srgb,var(--accent-primary) 16%,transparent);color:var(--pink2);font-size:12px;font-weight:700}
+h3{font-size:16px;margin:0 0 10px;font-weight:700}
+.panel{background:var(--bg-card-glass);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;margin-bottom:18px;backdrop-filter:blur(12px);box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.panel.brillo{border-color:color-mix(in srgb,var(--accent-primary) 28%,transparent);box-shadow:0 10px 40px rgba(0,0,0,.3),0 0 0 1px color-mix(in srgb,var(--accent-primary) 8%,transparent) inset}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+.grid-buscar{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:18px;align-items:start}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+label.campo{display:block;font-weight:600;margin:14px 0 6px;font-size:14px}
+label.campo:first-child{margin-top:0}
+input[type=text],input[type=number],input[type=password],input[type=email],input[type=search],select,textarea{
+  width:100%;border:1px solid var(--line2);border-radius:var(--r2);padding:10px 12px;background:color-mix(in srgb,var(--bg-primary) 55%,transparent);outline:none;font-size:15px;transition:.15s}
+select{width:auto;cursor:pointer}
+select option{background:var(--bg-elevated)}
+textarea{resize:vertical;line-height:1.5}
+input:focus,select:focus,textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-secondary) 18%,transparent)}
+input::placeholder,textarea::placeholder{color:var(--dim)}
+.btn{display:inline-flex;align-items:center;gap:7px;justify-content:center;text-decoration:none;border:1px solid var(--line2);background:var(--glass2);color:var(--ink);border-radius:var(--r2);padding:9px 15px;cursor:pointer;font-weight:600;white-space:nowrap;transition:.18s;min-height:40px}
+.btn:hover{border-color:color-mix(in srgb,var(--text-primary) 32%,transparent);background:color-mix(in srgb,var(--text-primary) 11%,transparent)}
+.btn:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.btn.pri{border:0;color:var(--on-accent);background:linear-gradient(100deg,var(--pink),var(--violet));box-shadow:var(--glow-p)}
+.btn.pri:hover{filter:brightness(1.12);box-shadow:0 0 26px color-mix(in srgb,var(--accent-primary) 65%,transparent)}
+.btn.cian{border-color:color-mix(in srgb,var(--accent-secondary) 50%,transparent);color:var(--cyan);background:color-mix(in srgb,var(--accent-secondary) 7%,transparent)}
+.btn.cian:hover{box-shadow:var(--glow-c)}
+.btn.wa{border:0;background:#1fbf6a;color:#04140b}
+.btn.peligro{border-color:color-mix(in srgb,var(--danger) 45%,transparent);color:var(--red);background:color-mix(in srgb,var(--danger) 6%,transparent)}
+.btn.sm{padding:5px 11px;font-size:13px;min-height:32px}
+.btn.big{padding:13px 24px;font-size:16px;min-height:50px}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:none;box-shadow:none}
+.ayuda{font-size:13px;color:var(--muted);margin-top:6px}
+.ok{color:var(--green);font-weight:600}.no{color:var(--red);font-weight:600}.warn{color:var(--amber)}
+code{background:color-mix(in srgb,var(--text-primary) 7%,transparent);padding:1px 6px;border-radius:6px;font-size:.92em}
+/* perfiles y chips */
+.perfiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.perfil{border:1px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer;background:color-mix(in srgb,var(--text-primary) 2.5%,transparent);transition:.18s}
+.perfil:hover{border-color:var(--line2)}
+.perfil.on{border-color:var(--pink);background:linear-gradient(140deg,color-mix(in srgb,var(--accent-primary) 16%,transparent),color-mix(in srgb,var(--accent-tertiary) 8%,transparent));box-shadow:var(--glow-p)}
+.perfil b{display:block;font-size:16px;text-transform:capitalize}
+.perfil small{color:var(--muted);display:block;font-size:12.5px}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.chip{border:1px solid var(--line);background:color-mix(in srgb,var(--text-primary) 3.5%,transparent);border-radius:99px;padding:5px 12px;cursor:pointer;font-size:13px;color:var(--muted);transition:.15s}
+.chip:hover{color:var(--ink);border-color:var(--line2)}
+.chip.on{color:var(--text-primary);border-color:var(--cyan);background:color-mix(in srgb,var(--accent-secondary) 12%,transparent);box-shadow:var(--glow-c)}
+.chip.mini{cursor:default;padding:3px 10px;font-size:12px}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:12px;overflow:hidden;background:color-mix(in srgb,var(--bg-primary) 50%,transparent);flex-wrap:wrap}
+.seg button{border:0;background:none;padding:9px 14px;cursor:pointer;color:var(--muted);border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:linear-gradient(100deg,color-mix(in srgb,var(--accent-primary) 35%,transparent),color-mix(in srgb,var(--accent-tertiary) 30%,transparent));color:var(--text-primary)}
+/* toggle "lo que sea" */
+.toggle{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px dashed color-mix(in srgb,var(--warn) 40%,transparent);border-radius:14px;margin-top:12px;cursor:pointer;background:color-mix(in srgb,var(--warn) 4%,transparent);transition:.18s}
+.toggle.on{border-style:solid;border-color:var(--amber);background:color-mix(in srgb,var(--warn) 10%,transparent);box-shadow:0 0 18px color-mix(in srgb,var(--warn) 20%,transparent)}
+.sw{width:44px;height:24px;border-radius:99px;background:color-mix(in srgb,var(--text-primary) 14%,transparent);position:relative;flex:none;transition:.2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+.toggle.on .sw{background:var(--amber)}
+.toggle.on .sw::after{left:23px}
+.toggle b{display:block}
+.toggle small{color:var(--muted)}
+/* mapa */
+.mapa-wrap{position:relative}
+#mapa{height:430px;border-radius:14px;border:1px solid var(--line2);overflow:hidden;background:var(--bg-primary)}
+#mapa .sin-mapa{height:100%;display:grid;place-items:center;text-align:center;color:var(--muted);padding:24px}
+.leaflet-container{background:var(--bg-primary);font-family:inherit}
+.leaflet-control-attribution{background:color-mix(in srgb,var(--bg-primary) 70%,transparent)!important;color:var(--dim)!important}
+.leaflet-control-attribution a{color:var(--muted)!important}
+.leaflet-bar a{background:var(--bg-elevated)!important;color:var(--ink)!important;border-color:var(--line)!important}
+.pin{width:22px;height:22px;border-radius:50%;background:var(--accent-primary);border:3px solid #fff;box-shadow:0 0 0 6px color-mix(in srgb,var(--accent-primary) 25%,transparent),0 0 22px color-mix(in srgb,var(--accent-primary) 90%,transparent)}
+/* --- Mapa OpenStreetMap con estética Vice City ---
+   1) Filtro SVG #vice-tiles (está al principio del <body>): una curva de tonos que deja los nombres de
+      calles en BLANCO (con un borde oscuro fino que los recorta), las calles en un tono medio más claro
+      que las manzanas, las avenidas todavía más claras, y el fondo y las manzanas bien oscuros.
+      Es un filtro de color puro: no aplica desenfoque, así que los tiles se ven nítidos.
+   2) Una capa de tinte con mix-blend-mode:color pinta magenta→violeta→cian sin tocar la luminosidad.
+   3) Solo se filtran los tiles: el pin y el círculo quedan intactos encima.
+   Para ajustar a gusto: --mapa-brillo (1 = normal) y --mapa-tinte (0 = sin color, 1 = color pleno). */
+#mapa{--mapa-brillo:1;--mapa-tinte:.55}
+.tiles-vice{filter:url(#vice-tiles) brightness(var(--mapa-brillo))}
+.leaflet-tinte-pane{mix-blend-mode:color;pointer-events:none}
+.tinte-vice{position:absolute;left:0;top:0;opacity:var(--mapa-tinte);
+  background:linear-gradient(135deg,var(--accent-primary) 0%,var(--accent-tertiary) 50%,var(--accent-secondary) 100%)}
+#mapa.modo-claro .tiles-vice{filter:none}
+#mapa.modo-claro .leaflet-tinte-pane{display:none}
+.circulo-radio{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--accent-primary) 95%,transparent)) drop-shadow(0 0 14px color-mix(in srgb,var(--accent-primary) 45%,transparent))}
+.ctl-estilo{background:color-mix(in srgb,var(--bg-elevated) 88%,transparent)!important;border:1px solid var(--line2)!important;border-radius:10px!important;overflow:hidden;display:flex}
+.ctl-estilo button{border:0;background:none;color:var(--muted);padding:6px 10px;font:600 12.5px "Outfit",system-ui;cursor:pointer}
+.ctl-estilo button.on{color:var(--text-primary);background:linear-gradient(100deg,color-mix(in srgb,var(--accent-primary) 55%,transparent),color-mix(in srgb,var(--accent-tertiary) 50%,transparent))}
+.buscador{position:relative}
+.sugerencias{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:1200;background:var(--bg-elevated);border:1px solid var(--line2);border-radius:12px;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,.5)}
+.sugerencias button{display:block;width:100%;text-align:left;background:none;border:0;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--line)}
+.sugerencias button:last-child{border-bottom:0}
+.sugerencias button:hover,.sugerencias button.on{background:color-mix(in srgb,var(--accent-secondary) 10%,transparent)}
+.sugerencias small{color:var(--muted);display:block}
+.radio-row{display:flex;align-items:center;gap:14px;margin-top:12px}
+input[type=range]{flex:1;accent-color:var(--pink);height:28px}
+.radio-val{font-weight:700;font-size:18px;color:var(--cyan);min-width:76px;text-align:right;text-shadow:var(--glow-c)}
+.zona-elegida{display:flex;gap:10px;align-items:center;margin-top:12px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--accent-secondary) 6%,transparent);border:1px solid color-mix(in srgb,var(--accent-secondary) 25%,transparent);font-size:14px}
+.intencion{margin-top:10px;font-size:13px;color:var(--muted)}
+.intencion .chip{cursor:default}
+/* badges */
+.badge{display:inline-block;font-size:12px;font-weight:600;border-radius:99px;padding:2px 10px;white-space:nowrap;border:1px solid transparent}
+.b-mail{background:color-mix(in srgb,var(--accent-secondary) 12%,transparent);color:var(--cyan);border-color:color-mix(in srgb,var(--accent-secondary) 30%,transparent)}
+.b-whatsapp{background:color-mix(in srgb,var(--ok) 12%,transparent);color:var(--green);border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
+.b-none{background:color-mix(in srgb,var(--text-primary) 6%,transparent);color:var(--muted)}
+.b-nuevo{background:color-mix(in srgb,var(--accent-tertiary) 16%,transparent);color:var(--accent3-text)}.b-aprobado{background:color-mix(in srgb,var(--accent-primary) 14%,transparent);color:var(--pink2)}
+.b-excluido{background:color-mix(in srgb,var(--text-primary) 6%,transparent);color:var(--dim)}.b-preparado{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--amber)}
+.b-contactado{background:color-mix(in srgb,var(--accent-secondary) 12%,transparent);color:var(--cyan)}.b-respondio{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--green)}
+.b-descartado,.b-error,.b-descartada{background:color-mix(in srgb,var(--danger) 12%,transparent);color:var(--red)}.b-borrador{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--amber)}
+.b-enviado,.b-whatsapp_enviado,.b-postulado{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--green)}.b-eml{background:color-mix(in srgb,var(--accent-tertiary) 16%,transparent);color:var(--accent3-text)}
+.b-guardada{background:color-mix(in srgb,var(--accent-tertiary) 16%,transparent);color:var(--accent3-text)}.b-vista{background:color-mix(in srgb,var(--accent-secondary) 12%,transparent);color:var(--cyan)}
+/* tablas */
+.tabla-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--bg-primary) 35%,transparent)}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;letter-spacing:.3px;color:var(--muted);text-align:left;font-weight:600;background:color-mix(in srgb,var(--bg-elevated) 95%,transparent);position:sticky;top:0;z-index:1}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer;transition:background .12s}
+tbody tr:hover td{background:color-mix(in srgb,var(--text-primary) 3%,transparent)}
+tbody tr.sel td{background:color-mix(in srgb,var(--accent-primary) 8%,transparent)}
+tbody tr.off td{color:var(--dim)}
+td .dir{color:var(--muted);font-size:12.5px}
+td.chk{width:40px}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--pink);cursor:pointer}
+.redes a{margin-right:8px;font-size:12.5px;text-decoration:none}
+.aviso{font-size:12px;color:var(--amber)}
+/* revisión */
+.rev{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:18px;align-items:start}
+.preview{position:sticky;top:0}
+.ptabs{display:flex;gap:6px;margin-bottom:12px}
+.ptabs button{border:1px solid var(--line);background:none;padding:6px 12px;border-radius:9px;cursor:pointer;color:var(--muted)}
+.ptabs button.on{border-color:var(--pink);color:var(--text-primary);background:color-mix(in srgb,var(--accent-primary) 14%,transparent)}
+.mailbox{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:color-mix(in srgb,var(--bg-primary) 45%,transparent)}
+.mailbox .hdr{padding:10px 13px;font-size:13px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--text-primary) 3%,transparent)}
+.mailbox .hdr div{margin:2px 0}
+.mailbox .hdr span{color:var(--muted);display:inline-block;width:60px}
+.mailbox .body{padding:14px;white-space:pre-wrap;max-height:430px;overflow:auto;overflow-wrap:anywhere}
+.adj{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line2);border-radius:9px;padding:5px 10px;margin:0 14px 14px;font-size:13px}
+.wa-fondo{background:linear-gradient(160deg,#0b1a14,#0c1410);border-radius:12px;padding:14px;border:1px solid color-mix(in srgb,var(--ok) 18%,transparent)}
+.burbuja{color:#fff;background:#0f4d33;border-radius:12px 12px 12px 3px;padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.info-tanda{display:flex;gap:20px;flex-wrap:wrap;font-size:14px}
+.info-tanda div span{color:var(--muted);margin-right:4px}
+.resumen-sel{display:flex;gap:16px;flex-wrap:wrap;font-size:14px}
+/* tarjetas */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
+.card{background:var(--bg-card-glass);border:1px solid var(--line);border-radius:var(--r);padding:16px;transition:.18s}
+.card:hover{border-color:var(--line2)}
+.card.abierto{border-color:var(--green);box-shadow:0 0 18px color-mix(in srgb,var(--ok) 20%,transparent)}
+.card h3{margin:0}
+.card .meta{color:var(--muted);font-size:13px;margin:3px 0 10px}
+.card textarea{min-height:110px;font-size:14px}
+.card .row{margin-top:10px}
+.vacio{text-align:center;color:var(--muted);padding:40px 10px}
+.vacio b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+/* portales */
+.portal-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:14px}
+.portal{border:1px solid var(--line);border-radius:14px;padding:14px;background:color-mix(in srgb,var(--text-primary) 3%,transparent);display:flex;flex-direction:column;gap:8px}
+.portal b{font-size:16px}
+.portal .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px}
+/* historial */
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--bg-card-glass);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.kpi b{display:block;font-size:26px;font-weight:800}
+.kpi span{color:var(--muted);font-size:12.5px}
+.kpi.p b{color:var(--pink2);text-shadow:var(--glow-p)}.kpi.c b{color:var(--cyan);text-shadow:var(--glow-c)}.kpi.g b{color:var(--green)}
+.acc-h{text-align:right;min-width:150px}.acc-h .btn{margin:0 0 4px 3px}
+/* configuración */
+.subnav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;position:sticky;top:-28px;z-index:5;padding:10px 0;background:linear-gradient(180deg,color-mix(in srgb,var(--bg-primary) 95%,transparent),color-mix(in srgb,var(--bg-primary) 80%,transparent));backdrop-filter:blur(10px)}
+.subnav button{border:1px solid var(--line);background:none;color:var(--muted);padding:7px 13px;border-radius:99px;cursor:pointer;font-size:13.5px}
+.subnav button.on,.subnav button:hover{color:var(--text-primary);border-color:var(--pink);background:color-mix(in srgb,var(--accent-primary) 12%,transparent)}
+.form2{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:4px 16px}
+.drop{border:2px dashed color-mix(in srgb,var(--accent-secondary) 40%,transparent);border-radius:16px;padding:26px;text-align:center;cursor:pointer;transition:.18s;background:color-mix(in srgb,var(--accent-secondary) 3%,transparent)}
+.drop:hover,.drop.sobre{border-color:var(--cyan);background:color-mix(in srgb,var(--accent-secondary) 9%,transparent);box-shadow:var(--glow-c)}
+.drop b{display:block;font-size:16px;margin-bottom:4px}
+.cv-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:16px}
+.cv{border:1px solid var(--line);border-radius:14px;padding:14px;background:color-mix(in srgb,var(--text-primary) 3%,transparent)}
+.cv.def{border-color:color-mix(in srgb,var(--accent-primary) 50%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--accent-primary) 15%,transparent) inset}
+.cv .nom{font-weight:700;overflow-wrap:anywhere;display:flex;gap:8px;align-items:flex-start}
+.cv .nom svg{flex:none;width:22px;height:22px;color:var(--pink2)}
+.vars{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.vars button{border:1px solid color-mix(in srgb,var(--accent-secondary) 35%,transparent);background:color-mix(in srgb,var(--accent-secondary) 6%,transparent);color:var(--cyan);border-radius:8px;padding:3px 9px;font-size:12.5px;cursor:pointer;font-family:ui-monospace,Consolas,monospace}
+.vars button:hover{box-shadow:var(--glow-c)}
+.editor{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.editor textarea{min-height:300px;font-size:14.5px}
+.vista{border:1px solid var(--line);border-radius:12px;padding:14px;white-space:pre-wrap;background:color-mix(in srgb,var(--bg-primary) 45%,transparent);min-height:300px;overflow-wrap:anywhere}
+.rubro-fila{display:grid;grid-template-columns:200px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.rubro-fila:last-child{border:0}
+.estado-cred{display:flex;gap:8px;align-items:center;font-size:13.5px;margin-top:6px}
+.resultado{margin-top:10px;padding:10px 12px;border-radius:12px;font-size:14px;display:none}
+.resultado.bien{display:block;background:color-mix(in srgb,var(--ok) 10%,transparent);border:1px solid color-mix(in srgb,var(--ok) 35%,transparent);color:var(--green)}
+.resultado.mal{display:block;background:color-mix(in srgb,var(--danger) 10%,transparent);border:1px solid color-mix(in srgb,var(--danger) 35%,transparent);color:color-mix(in srgb,var(--danger) 70%,var(--text-primary))}
+/* log, modal, toast */
+#job{position:fixed;left:252px;right:16px;bottom:16px;background:color-mix(in srgb,var(--bg-elevated) 94%,transparent);border:1px solid color-mix(in srgb,var(--accent-primary) 30%,transparent);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.6),var(--glow-p);display:none;z-index:40;backdrop-filter:blur(10px)}
+#job .hd{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+#job pre{margin:0;padding:12px 14px;max-height:230px;overflow:auto;font:12.5px/1.55 ui-monospace,Consolas,monospace;white-space:pre-wrap;color:var(--text-secondary)}
+.spin{width:15px;height:15px;border:2px solid color-mix(in srgb,var(--accent-primary) 30%,transparent);border-top-color:var(--pink);border-radius:50%;animation:g .8s linear infinite}
+@keyframes g{to{transform:rotate(360deg)}}
+.modal-fondo{position:fixed;inset:0;background:rgba(4,2,10,.7);display:none;place-items:center;z-index:60;backdrop-filter:blur(4px)}
+.modal{background:var(--bg-elevated);border:1px solid var(--line2);border-radius:18px;max-width:560px;width:calc(100% - 32px);padding:22px 24px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.modal.ancho{max-width:900px}
+.modal h3{font-size:19px;margin:0 0 12px}
+.modal ul{padding-left:18px;margin:10px 0 16px}
+.modal li{margin:6px 0}
+.modal iframe{width:100%;height:68vh;border:1px solid var(--line);border-radius:12px;background:#fff}
+#toast{pointer-events:none;position:fixed;top:18px;left:50%;transform:translate(-50%,-10px);background:var(--bg-elevated);border:1px solid var(--pink);color:var(--text-primary);padding:10px 18px;border-radius:12px;opacity:0;transition:.22s;z-index:80;max-width:min(440px,calc(100% - 24px));box-shadow:var(--glow-p)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#apagado{position:fixed;inset:0;z-index:100;display:none;place-items:center;text-align:center;background:var(--bg)}
+#apagado .marca{font-size:52px}
+.oculto{display:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:1180px){.rev,.grid2,.grid-buscar,.editor{grid-template-columns:minmax(0,1fr)}.preview{position:static}}
+@media (max-width:780px){
+  html,body{height:auto;overflow:visible}
+  body{flex-direction:column}
+  aside{width:auto;flex-direction:row;align-items:center;padding:8px 10px;position:sticky;top:0;z-index:30;overflow-x:auto;gap:6px;border-right:0;border-bottom:1px solid var(--line)}
+  .marca{font-size:21px;padding:0 6px}.marca-sub,.pie{display:none}
+  aside>*{flex:none}
+  nav{display:flex;gap:4px;flex:none}
+  nav button{width:auto;flex:none;white-space:nowrap;padding:8px 10px;margin:0;font-size:13.5px}
+  nav button svg{width:16px;height:16px}
+  nav button.on{box-shadow:inset 0 -2px 0 var(--pink)}
+  main{padding:18px 12px 160px;overflow:visible}
+  h1{font-size:24px}
+  .panel{padding:14px}
+  .cards,.perfiles{grid-template-columns:1fr}
+  #mapa{height:320px}
+  .tabla-wrap table{min-width:660px}
+  .rubro-fila{grid-template-columns:1fr}
+  .btn.big{width:100%}
+  #job{left:8px;right:8px;bottom:8px}
+  #job pre{max-height:160px}
+  .subnav{top:44px}
+}
+
+/* ---------- modo de búsqueda ---------- */
+.modos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.modo{border:1px solid var(--line);border-radius:14px;padding:11px 12px;cursor:pointer;background:color-mix(in srgb,var(--text-primary) 2.5%,transparent);transition:.18s;text-align:left;color:var(--ink)}
+.modo b{display:block;font-size:14.5px}.modo small{color:var(--muted);font-size:12px;line-height:1.35;display:block;margin-top:2px}
+.modo:hover{border-color:var(--line2)}
+.modo.on{border-color:var(--accent-primary);background:linear-gradient(140deg,color-mix(in srgb,var(--accent-primary) 16%,transparent),color-mix(in srgb,var(--accent-tertiary) 8%,transparent));box-shadow:var(--glow-p)}
+.modo.on.calido{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,transparent);box-shadow:0 0 calc(var(--glow)*18px) color-mix(in srgb,var(--warn) calc(var(--glow)*30%),transparent)}
+.cat.on{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 14%,transparent);box-shadow:0 0 calc(var(--glow)*14px) color-mix(in srgb,var(--warn) calc(var(--glow)*30%),transparent)}
+.b-busca{background:color-mix(in srgb,var(--warn) 16%,transparent);color:color-mix(in srgb,var(--warn) 80%,var(--text-primary));border-color:color-mix(in srgb,var(--warn) 35%,transparent)}
+.senal{font-size:12.5px;color:color-mix(in srgb,var(--warn) 70%,var(--text-primary));margin-top:3px}
+.medidor{display:inline-block;width:46px;height:6px;border-radius:9px;background:var(--line);vertical-align:middle;margin-left:6px;overflow:hidden}
+.medidor i{display:block;height:100%;background:linear-gradient(90deg,var(--warn),var(--accent-primary))}
+/* ---------- cola rápida de WhatsApp ---------- */
+#cola{position:fixed;inset:0;z-index:70;display:none;place-items:center;background:color-mix(in srgb,var(--bg-primary) 82%,transparent);backdrop-filter:blur(8px)}
+.cola-caja{width:min(640px,calc(100% - 24px));background:var(--bg-elevated);border:1px solid color-mix(in srgb,var(--ok) 40%,transparent);border-radius:20px;padding:22px 24px;box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 calc(var(--glow)*30px) color-mix(in srgb,var(--ok) calc(var(--glow)*25%),transparent)}
+.cola-prog{height:6px;border-radius:9px;background:var(--line);overflow:hidden;margin:10px 0 16px}
+.cola-prog i{display:block;height:100%;background:linear-gradient(90deg,var(--ok),var(--accent-secondary));transition:width .25s}
+.cola-nombre{font-size:22px;font-weight:800;line-height:1.15}
+.cola-caja textarea{min-height:130px;margin-top:12px}
+.cola-acciones{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn.enorme{flex:1;min-height:58px;font-size:17px;border:0;background:#1fbf6a;color:#04140b;box-shadow:0 0 calc(var(--glow)*22px) rgba(31,191,106,.45)}
+.btn.enorme:hover{filter:brightness(1.08)}
+kbd{font:600 11.5px ui-monospace,Consolas,monospace;padding:2px 6px;border-radius:6px;border:1px solid var(--line2);background:var(--glass2);margin-left:4px}
+.cola-fin{text-align:center;padding:16px 0}
+.cola-fin b{display:block;font-size:22px;margin-bottom:6px}
+/* ---------- personalización ---------- */
+.temas{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.tema{border:1px solid var(--line);border-radius:16px;padding:0;cursor:pointer;overflow:hidden;text-align:left;background:none;color:inherit;transition:.18s}
+.tema:hover{transform:translateY(-2px);border-color:var(--line2)}
+.tema.on{border-color:var(--accent-primary);box-shadow:var(--glow-p)}
+.tema .mini{height:92px;padding:12px;display:flex;flex-direction:column;gap:7px;position:relative}
+.tema .mini .barra-t{height:9px;border-radius:5px;width:62%}
+.tema .mini .boton-t{height:20px;width:74px;border-radius:7px}
+.tema .mini .chips-t{display:flex;gap:5px}.tema .mini .chips-t i{height:12px;width:30px;border-radius:9px;display:block}
+.tema .mini .tarjeta-t{position:absolute;right:12px;top:12px;width:62px;height:64px;border-radius:10px}
+.tema .pie-t{padding:10px 12px;border-top:1px solid var(--line)}
+.tema .pie-t b{display:block;font-size:14px}.tema .pie-t small{color:var(--muted);font-size:12px}
+.custom-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+.color-fila{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.color-fila:last-child{border:0}
+.color-fila label{flex:1;font-weight:600;font-size:14px}.color-fila small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+input[type=color]{width:52px;height:38px;border:1px solid var(--line2);border-radius:10px;background:none;padding:3px;cursor:pointer}
+.color-fila input[type=range]{max-width:170px}
+.color-fila .val{width:44px;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+.muestra{border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--bg-primary);position:relative;overflow:hidden}
+.muestra .panel{margin:0}
+.muestra-mapa{height:120px;border-radius:12px;margin-top:12px;position:relative;overflow:hidden;border:1px solid var(--line2);
+  background:repeating-linear-gradient(0deg,transparent 0 22px,color-mix(in srgb,var(--text-primary) 9%,transparent) 22px 24px),repeating-linear-gradient(90deg,transparent 0 30px,color-mix(in srgb,var(--text-primary) 9%,transparent) 30px 32px),color-mix(in srgb,var(--bg-primary) 85%,var(--accent-tertiary))}
+.muestra-mapa .circ{position:absolute;left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;border:3px solid var(--accent-primary);background:color-mix(in srgb,var(--accent-primary) 10%,transparent);box-shadow:0 0 calc(var(--glow)*14px) var(--accent-glow)}
+.muestra-mapa .pin{position:absolute;left:50%;top:50%;margin:-11px 0 0 -11px}
+@media (max-width:1180px){.custom-grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:780px){.modos{grid-template-columns:1fr}.cola-caja{padding:18px}}
+</style>
+<script src="/temas.js"></script>
+</head>
+<body>
+<!-- Filtro del mapa (estética Vice City sobre los tiles de OpenStreetMap). Ver comentario en el CSS de .tiles-vice -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="vice-tiles" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+  <!-- a) pasa a gris dando más peso al azul: así las calles blancas y el fondo beige se separan bien -->
+  <feColorMatrix in="SourceGraphic" type="matrix" values="0.2 0.3 0.5 0 0  0.2 0.3 0.5 0 0  0.2 0.3 0.5 0 0  0 0 0 1 0" result="gris"/>
+  <!-- b) curva de tonos: letras (oscuras en OSM) → BLANCAS · su halo y las calles → tono medio · fondo y manzanas → muy oscuro -->
+  <feComponentTransfer in="gris" result="curva">
+    <feFuncR type="table" tableValues="1.000 0.999 0.999 0.998 0.997 0.997 0.996 0.995 0.995 0.994 0.993 0.993 0.992 0.991 0.991 0.990 0.989 0.989 0.988 0.987 0.987 0.986 0.985 0.985 0.984 0.983 0.983 0.982 0.981 0.981 0.980 0.970 0.959 0.949 0.938 0.928 0.918 0.907 0.897 0.886 0.876 0.866 0.855 0.845 0.834 0.824 0.814 0.803 0.793 0.782 0.772 0.762 0.751 0.741 0.730 0.720 0.700 0.680 0.660 0.640 0.620 0.600 0.580 0.560 0.540 0.520 0.500 0.480 0.460 0.440 0.420 0.402 0.384 0.366 0.348 0.330 0.306 0.282 0.258 0.234 0.210 0.193 0.177 0.160 0.143 0.127 0.110 0.101 0.093 0.084 0.076 0.067 0.059 0.050 0.107 0.163 0.220 0.290 0.360 0.430 0.500"/>
+    <feFuncG type="table" tableValues="1.000 0.999 0.999 0.998 0.997 0.997 0.996 0.995 0.995 0.994 0.993 0.993 0.992 0.991 0.991 0.990 0.989 0.989 0.988 0.987 0.987 0.986 0.985 0.985 0.984 0.983 0.983 0.982 0.981 0.981 0.980 0.970 0.959 0.949 0.938 0.928 0.918 0.907 0.897 0.886 0.876 0.866 0.855 0.845 0.834 0.824 0.814 0.803 0.793 0.782 0.772 0.762 0.751 0.741 0.730 0.720 0.700 0.680 0.660 0.640 0.620 0.600 0.580 0.560 0.540 0.520 0.500 0.480 0.460 0.440 0.420 0.402 0.384 0.366 0.348 0.330 0.306 0.282 0.258 0.234 0.210 0.193 0.177 0.160 0.143 0.127 0.110 0.101 0.093 0.084 0.076 0.067 0.059 0.050 0.107 0.163 0.220 0.290 0.360 0.430 0.500"/>
+    <feFuncB type="table" tableValues="1.000 0.999 0.999 0.998 0.997 0.997 0.996 0.995 0.995 0.994 0.993 0.993 0.992 0.991 0.991 0.990 0.989 0.989 0.988 0.987 0.987 0.986 0.985 0.985 0.984 0.983 0.983 0.982 0.981 0.981 0.980 0.970 0.959 0.949 0.938 0.928 0.918 0.907 0.897 0.886 0.876 0.866 0.855 0.845 0.834 0.824 0.814 0.803 0.793 0.782 0.772 0.762 0.751 0.741 0.730 0.720 0.700 0.680 0.660 0.640 0.620 0.600 0.580 0.560 0.540 0.520 0.500 0.480 0.460 0.440 0.420 0.402 0.384 0.366 0.348 0.330 0.306 0.282 0.258 0.234 0.210 0.193 0.177 0.160 0.143 0.127 0.110 0.101 0.093 0.084 0.076 0.067 0.059 0.050 0.107 0.163 0.220 0.290 0.360 0.430 0.500"/>
+  </feComponentTransfer>
+  <!-- c) las avenidas de OSM son amarillas/naranjas: se les suma brillo para que se destaquen como las calles -->
+  <feColorMatrix in="SourceGraphic" type="matrix" values="1.5 0 -1.5 0 0  1.5 0 -1.5 0 0  1.5 0 -1.5 0 0  0 0 0 0 1" result="calido"/>
+  <feComposite in="curva" in2="calido" operator="arithmetic" k1="0" k2="1" k3="1" k4="0"/>
+</filter></svg>
+<aside>
+  <div class="marca">Postuladorsito</div>
+  <div class="marca-sub">tu búsqueda de laburo, en piloto automático</div>
+  <nav>
+    <button data-v="buscar" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar</button>
+    <button data-v="revision"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Revisión y envío</button>
+    <button data-v="whatsapp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12z"/></svg>WhatsApp<span class="count oculto" id="cnt-wa">0</span></button>
+    <button data-v="portales"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Portales de empleo</button>
+    <button data-v="historial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>Historial</button>
+    <button data-v="apariencia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a10 10 0 1 1 10-10c0 2.8-2.2 4-4 4h-2a2 2 0 0 0-1.5 3.3A1.6 1.6 0 0 1 12 22z"/><circle cx="7.5" cy="10.5" r="1.3"/><circle cx="12" cy="7" r="1.3"/><circle cx="16.5" cy="10.5" r="1.3"/></svg>Personalización</button>
+    <button data-v="config"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Configuración y CVs</button>
+  </nav>
+  <div class="pie" id="pie"></div>
+</aside>
+
+<main>
+<!-- ======================= BUSCAR ======================= -->
+<section id="v-buscar">
+  <div class="panel brillo oculto" id="primeros-pasos" style="border-color:color-mix(in srgb,var(--warn) 50%,transparent)">
+    <div class="row"><b>👋 Antes de empezar</b><span class="spacer"></span><button class="btn sm pri" id="btn-primeros">Ir a Configuración</button></div>
+    <p class="ayuda" id="primeros-lista" style="margin-bottom:0"></p>
+  </div>
+  <h1>¿Dónde vamos a <span class="neon">dejar el CV</span> hoy?</h1>
+  <p class="sub">Escribí qué tipo de lugar o de trabajo buscás (o elegí «Lo que sea»), marcá la zona en el mapa y listo. Los lugares que ya tenés registrados se saltean solos.</p>
+  <div class="grid-buscar">
+    <div>
+      <div class="panel">
+        <h2><span class="n">1</span>Perfil y CV</h2>
+        <div class="perfiles" id="perfiles"></div>
+        <label class="campo" for="cv-corrida">CV para esta búsqueda</label>
+        <select id="cv-corrida" style="width:100%"></select>
+      </div>
+      <div class="panel">
+        <h2><span class="n">2</span>Qué buscás</h2>
+        <div class="modos" role="radiogroup" aria-label="Modo de búsqueda">
+          <button class="modo on" data-modo="rubro" role="radio" aria-checked="true"><b>Por rubro o puesto</b><small>Escribís qué tipo de lugar o trabajo</small></button>
+          <button class="modo" data-modo="todo" role="radio" aria-checked="false"><b>Lo que sea</b><small>Comercios y empresas de cualquier rubro</small></button>
+          <button class="modo calido" data-modo="buscan" role="radio" aria-checked="false"><b>🔥 Buscan gente</b><small>Lugares que están contratando ahora</small></button>
+        </div>
+        <div id="bloque-rubro">
+          <input type="text" id="rubro" placeholder="Ej: atención al cliente, tiendas de anime, depósito, soporte IT…" autocomplete="off">
+          <div class="chips" id="chips-rubro"></div>
+          <div class="intencion" id="intencion"></div>
+        </div>
+        <div id="bloque-todo" class="intencion oculto">Se buscan comercios, locales y empresas de cualquier rubro dentro del radio elegido.</div>
+        <div id="bloque-buscan" class="oculto">
+          <div class="ayuda" style="margin:0 0 4px">Categorías (podés elegir varias):</div>
+          <div class="chips" id="chips-cat"></div>
+          <label class="ayuda" style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="solo-senales" checked> Solo los que muestran señales de que buscan personal</label>
+          <label class="ayuda" style="display:flex;gap:8px;align-items:center;margin-top:8px">Avisos en portales de los últimos
+            <select id="buscan-dias"><option value="1">24 horas</option><option value="3" selected>3 días</option><option value="7">7 días</option></select></label>
+          <p class="ayuda">Revisa la web de cada lugar buscando «Trabajá con nosotros», «envianos tu CV», «buscamos personal» o mails de RRHH, y arma las búsquedas de avisos recientes en LinkedIn, Computrabajo, Indeed y Google Empleos.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <h2><span class="n">4</span>Cantidad y fuente</h2>
+        <div class="row" style="gap:22px;align-items:flex-start">
+          <div><label class="campo" for="limite">Máximo de lugares</label><input type="number" id="limite" min="1" max="60" style="width:110px"></div>
+          <div><label class="campo">Fuente</label><div class="seg" id="fuente"></div><div class="ayuda" id="ayuda-fuente"></div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel brillo">
+        <h2><span class="n">3</span>Zona y radio</h2>
+        <div class="row" style="margin-bottom:10px">
+          <div class="buscador" style="flex:1;min-width:220px">
+            <input type="search" id="buscar-dir" placeholder="Buscá una dirección o barrio…" autocomplete="off">
+            <div class="sugerencias oculto" id="sugerencias"></div>
+          </div>
+          <button class="btn cian" id="btn-ubicacion"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Usar mi ubicación</button>
+        </div>
+        <div class="mapa-wrap"><div id="mapa"></div></div>
+        <div class="radio-row">
+          <span class="ayuda" style="margin:0">Radio</span>
+          <input type="range" id="radio" min="300" max="20000" step="100" value="3000" aria-label="Radio de búsqueda">
+          <span class="radio-val" id="radio-val">3 km</span>
+        </div>
+        <div class="chips" id="chips-zona"></div>
+        <div class="zona-elegida"><span>📍</span><input type="text" id="zona" placeholder="Nombre de la zona (se completa solo)" style="border:0;background:none;padding:2px;box-shadow:none"></div>
+        <div class="ayuda" id="ayuda-mapa">Tocá el mapa para mover el pin, o arrastralo.</div>
+      </div>
+      <div class="row">
+        <button class="btn pri big" id="btn-buscar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar lugares</button>
+        <span class="ayuda" id="resumen-busqueda" style="margin:0"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= REVISIÓN ======================= -->
+<section id="v-revision" class="oculto">
+  <div class="row" style="margin-bottom:6px"><h1>Revisión y envío</h1><span class="spacer"></span><select id="sel-tanda" style="min-width:300px;max-width:100%"></select></div>
+  <p class="sub">Tildá a quién le escribís y tocá una fila para ver el mensaje exacto que se manda.</p>
+  <div id="rev-vacio" class="panel vacio oculto"><b>Todavía no hay búsquedas</b>Hacé una en la pestaña Buscar.</div>
+  <div id="rev-contenido" class="oculto">
+    <div class="panel" style="padding:12px 18px"><div class="info-tanda" id="info-tanda"></div></div>
+    <div class="rev">
+      <div>
+        <div class="row" style="margin-bottom:10px">
+          <button class="btn sm" id="sel-todos">Tildar todos</button><button class="btn sm" id="sel-ninguno">Destildar todos</button>
+          <span class="spacer"></span>
+          <label class="ayuda" style="margin:0">Canal&nbsp;<select id="canal-pref"><option value="auto">Automático (mail si hay)</option><option value="mail">Solo mail</option><option value="whatsapp">Solo WhatsApp</option></select></label>
+        </div>
+        <div class="tabla-wrap"><table><thead><tr><th class="chk"></th><th>Lugar</th><th>Canal</th><th>Destino</th><th>Redes</th><th>Estado</th></tr></thead><tbody id="tbody-rev"></tbody></table></div>
+      </div>
+      <div class="panel preview"><h2>Vista previa</h2><div id="preview-cuerpo" class="vacio" style="padding:30px 0">Tocá un lugar de la tabla.</div></div>
+    </div>
+    <div class="panel" style="margin-top:18px">
+      <div class="row"><div class="resumen-sel" id="resumen-sel"></div><span class="spacer"></span>
+        <label class="ayuda" style="margin:0">Mails&nbsp;<select id="modo-mail"><option value="borrador">Borradores en Gmail</option><option value="enviar">Enviar automáticamente</option><option value="eml">Archivos .eml</option></select></label>
+        <label class="ayuda" style="margin:0" title="Incluye lugares ya contactados"><input type="checkbox" id="forzar"> Reenviar a ya contactados</label></div>
+      <div class="row" style="margin-top:12px"><span class="ayuda" id="cupo" style="margin:0"></span><span class="spacer"></span>
+        <button class="btn" id="btn-cola" style="border-color:color-mix(in srgb,var(--ok) 50%,transparent);color:var(--ok)">⚡ Cola rápida de WhatsApp</button>
+        <button class="btn" id="btn-guardar">Guardar selección</button><button class="btn pri big" id="btn-procesar">Procesar tanda</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= WHATSAPP ======================= -->
+<section id="v-whatsapp" class="oculto">
+  <h1>WhatsApp</h1>
+  <p class="sub">Chats listos con el mensaje escrito. Abrís cada uno, lo retocás si querés y tocás <b>Enviar</b> vos. Después lo marcás como enviado. Mejor de a 5 o 10 por día.</p>
+  <div class="row" style="margin:-6px 0 16px"><button class="btn big" id="btn-cola-wa" style="border:0;background:#1fbf6a;color:#04140b">⚡ Cola rápida: mandar uno tras otro</button>
+    <span class="ayuda" style="margin:0">Abre cada chat con <kbd>Enter</kbd>, lo marca como enviado y deja listo el siguiente.</span></div>
+  <div class="cards" id="cards-wa"></div>
+  <div id="redes-wrap" class="oculto" style="margin-top:26px">
+    <h3>Sin mail ni celular: escribiles por redes</h3>
+    <div class="tabla-wrap"><table><thead><tr><th>Lugar</th><th>Redes / web</th><th>Teléfono</th><th></th></tr></thead><tbody id="tbody-redes"></tbody></table></div>
+  </div>
+</section>
+
+<!-- ======================= PORTALES ======================= -->
+<section id="v-portales" class="oculto">
+  <h1>Portales <span class="neon">de empleo</span></h1>
+  <p class="sub">Armá búsquedas con filtro de fecha para LinkedIn, Computrabajo, Indeed y Google Empleos, y llevá el registro de las ofertas que viste o a las que te postulaste. La postulación la hacés vos en cada portal: así no te arriesgás a que te bloqueen la cuenta.</p>
+  <div class="grid2">
+    <div class="panel brillo">
+      <h2><span class="n">1</span>Nueva búsqueda</h2>
+      <label class="campo" for="p-puesto">Puesto</label>
+      <input type="text" id="p-puesto" placeholder="Ej: Soporte IT, Atención al cliente, Repositor…">
+      <div class="chips" id="chips-puesto"></div>
+      <div class="form2" style="margin-top:6px">
+        <div><label class="campo" for="p-ubic">Ubicación</label><input type="text" id="p-ubic" placeholder="Ej: Lomas de Zamora"></div>
+        <div><label class="campo" for="p-dias">Publicadas en</label>
+          <select id="p-dias" style="width:100%"><option value="1">Últimas 24 horas</option><option value="3">Últimos 3 días</option><option value="7" selected>Última semana</option><option value="14">Últimas 2 semanas</option><option value="30">Último mes</option></select></div>
+      </div>
+      <label class="ayuda" style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="p-remoto"> Solo remoto</label>
+      <div class="chips" id="p-portales" style="margin-top:12px"></div>
+      <div class="row" style="margin-top:16px"><button class="btn pri" id="btn-portales">Generar búsquedas</button></div>
+      <div class="portal-links" id="portal-links"></div>
+    </div>
+    <div class="panel">
+      <h2><span class="n">2</span>Guardar una oferta</h2>
+      <label class="campo" for="o-url">Link de la oferta</label>
+      <input type="text" id="o-url" placeholder="Pegá acá el link del aviso">
+      <div class="form2">
+        <div><label class="campo" for="o-titulo">Puesto</label><input type="text" id="o-titulo" placeholder="Ej: Soporte IT Jr"></div>
+        <div><label class="campo" for="o-empresa">Empresa</label><input type="text" id="o-empresa" placeholder="Opcional"></div>
+      </div>
+      <label class="campo" for="o-notas">Notas</label>
+      <input type="text" id="o-notas" placeholder="Ej: pide inglés, sueldo a convenir…">
+      <div class="row" style="margin-top:14px">
+        <button class="btn pri" id="btn-oferta">Guardar oferta</button>
+        <button class="btn" id="btn-oferta-postulado">Guardar como «Me postulé»</button>
+      </div>
+      <p class="ayuda">Si pegás un link que ya guardaste, se actualiza en vez de duplicarse.</p>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="row" style="margin-bottom:12px"><h3 style="margin:0">Mis ofertas</h3><span class="spacer"></span>
+      <div class="seg" id="filtro-ofertas"></div>
+      <label class="ayuda" style="margin:0">CV que usé&nbsp;<select id="o-cv"></select></label></div>
+    <div id="lista-ofertas"></div>
+  </div>
+  <div class="panel">
+    <h3>Búsquedas guardadas</h3>
+    <div id="lista-busquedas"></div>
+  </div>
+</section>
+
+<!-- ======================= HISTORIAL ======================= -->
+<section id="v-historial" class="oculto">
+  <div class="row" style="margin-bottom:6px"><h1>Historial</h1><span class="spacer"></span>
+    <a class="btn sm" href="/api/csv/lugares">⬇ CSV de lugares</a><a class="btn sm" href="/api/csv/historial">⬇ CSV de historial</a><button class="btn sm" data-abrir="datos">📁 Carpeta de datos</button></div>
+  <p class="sub">A quién le escribiste, con qué CV, por qué canal y cuándo.</p>
+  <div class="kpis" id="kpis"></div>
+  <div class="row" style="margin-bottom:12px">
+    <input type="search" id="filtro-h" placeholder="Filtrar por lugar, rubro, zona, destino…" style="max-width:340px">
+    <select id="filtro-canal"><option value="">Todos los canales</option><option value="mail">Mail</option><option value="whatsapp">WhatsApp</option></select>
+    <select id="filtro-estado"><option value="">Todos los estados</option></select>
+  </div>
+  <div class="tabla-wrap"><table><thead><tr><th>Fecha</th><th>Lugar</th><th>Rubro · zona</th><th>CV</th><th>Canal</th><th>Destino</th><th>Envío</th><th>Lugar</th><th></th></tr></thead><tbody id="tbody-hist"></tbody></table></div>
+</section>
+
+<!-- ======================= CONFIGURACIÓN ======================= -->
+<section id="v-config" class="oculto">
+  <h1>Configuración <span class="neon">y CVs</span></h1>
+  <p class="sub" id="sub-config">Todo se guarda desde acá: no hace falta abrir ningún archivo. Antes de cambiar algo, la app guarda una copia de respaldo en <code>config/.respaldo</code>.</p>
+  <div class="subnav" id="subnav">
+    <button data-s="s-datos" class="on">Mis datos</button><button data-s="s-cvs">CVs</button><button data-s="s-perfiles">Perfiles</button>
+    <button data-s="s-plantillas">Plantillas</button><button data-s="s-ganchos">Ganchos</button><button data-s="s-claves">Claves y conexión</button><button data-s="s-pref">Preferencias</button><button data-s="s-cuenta" class="solo-web oculto">Mi cuenta</button>
+  </div>
+
+  <div class="panel" id="s-datos">
+    <h3>Mis datos</h3>
+    <p class="ayuda" style="margin-top:-4px">Se usan en la firma y en el cuerpo de los mensajes.</p>
+    <div class="form2">
+      <div><label class="campo" for="yo-nombre">Nombre y apellido</label><input type="text" id="yo-nombre"></div>
+      <div><label class="campo" for="yo-telefono">Teléfono</label><input type="text" id="yo-telefono"></div>
+      <div><label class="campo" for="yo-email">Mail</label><input type="email" id="yo-email"></div>
+      <div><label class="campo" for="yo-zona">Zona donde vivís</label><input type="text" id="yo-zona"></div>
+      <div><label class="campo" for="yo-linkedin">LinkedIn (opcional)</label><input type="text" id="yo-linkedin" placeholder="linkedin.com/in/tunombre"></div>
+    </div>
+    <div class="row" style="margin-top:16px"><button class="btn pri" id="btn-yo">Guardar mis datos</button></div>
+  </div>
+
+  <div class="panel" id="s-cvs">
+    <h3>Mis CVs</h3>
+    <div class="drop" id="drop" tabindex="0"><b>Arrastrá tu CV en PDF acá</b><span class="ayuda">o tocá para elegir el archivo · hasta 12 MB</span>
+      <input type="file" id="file-cv" accept="application/pdf,.pdf" class="oculto" multiple></div>
+    <div class="cv-lista" id="cv-lista"></div>
+  </div>
+
+  <div class="panel" id="s-perfiles">
+    <div class="row"><h3 style="margin:0">Perfiles</h3><span class="spacer"></span><button class="btn sm cian" id="btn-nuevo-perfil">+ Nuevo perfil</button></div>
+    <p class="ayuda">Cada perfil tiene su CV, su asunto de mail, sus plantillas y sus atajos de rubros y zonas.</p>
+    <div class="cards" id="perfiles-cfg" style="margin-top:12px"></div>
+  </div>
+
+  <div class="panel" id="s-plantillas">
+    <h3>Plantillas de mensajes</h3>
+    <div class="row" style="margin-bottom:10px">
+      <label class="ayuda" style="margin:0">Perfil&nbsp;<select id="pl-perfil"></select></label>
+      <div class="seg" id="pl-tipo"><button data-t="mail" class="on">Mail</button><button data-t="whatsapp">WhatsApp</button><button data-t="asunto">Asunto del mail</button></div>
+    </div>
+    <div class="vars" id="pl-vars"></div>
+    <div class="editor">
+      <div><textarea id="pl-texto" spellcheck="true"></textarea><div class="ayuda" id="pl-avisos"></div></div>
+      <div><div class="ayuda" style="margin:0 0 6px" id="pl-vista-titulo">Así queda</div><div class="vista" id="pl-vista"></div></div>
+    </div>
+    <div class="row" style="margin-top:14px"><button class="btn pri" id="btn-plantilla">Guardar plantilla</button><button class="btn" id="btn-plantilla-deshacer">Descartar cambios</button></div>
+  </div>
+
+  <div class="panel" id="s-ganchos">
+    <div class="row"><h3 style="margin:0">Ganchos por rubro</h3><span class="spacer"></span><button class="btn sm cian" id="btn-nuevo-rubro">+ Agregar rubro</button></div>
+    <p class="ayuda">El gancho es la frase personalizada que va en <code>{gancho}</code>. Escribila en primera persona y sin punto final. Si buscás algo que no está en la lista, se usa un gancho automático según lo que escribiste.</p>
+    <div id="lista-rubros"></div>
+  </div>
+
+  <div class="panel" id="s-claves">
+    <h3>Claves y conexión</h3>
+    <p class="ayuda" style="margin-top:-4px">Se guardan solo en el archivo <code>.env</code> de tu PC, que nunca se sube a GitHub. La contraseña no se vuelve a mostrar: si dejás el campo vacío, se conserva la que ya estaba.</p>
+    <div class="form2">
+      <div><label class="campo" for="env-user">Gmail (MAIL_USUARIO)</label><input type="email" id="env-user" placeholder="tu.mail@gmail.com" autocomplete="off"></div>
+      <div><label class="campo" for="env-pass">Contraseña de aplicación (MAIL_PASSWORD)</label><input type="password" id="env-pass" placeholder="16 letras" autocomplete="new-password">
+        <div class="estado-cred" id="cred-pass"></div></div>
+    </div>
+    <p class="ayuda">La contraseña de aplicación se genera en <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">myaccount.google.com/apppasswords</a> (hace falta tener activa la verificación en 2 pasos).</p>
+    <div class="row"><button class="btn pri" id="btn-env-mail">Guardar Gmail</button><button class="btn cian" id="btn-probar-gmail">Probar conexión Gmail</button></div>
+    <div class="resultado" id="res-gmail"></div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:22px 0">
+    <label class="campo" for="env-google">Clave de Google Places (GOOGLE_PLACES_API_KEY)</label>
+    <input type="password" id="env-google" placeholder="AIza…" autocomplete="off">
+    <div class="estado-cred" id="cred-google"></div>
+    <p class="ayuda">Se crea en <a href="https://console.cloud.google.com/apis/library/places.googleapis.com" target="_blank" rel="noopener">Google Cloud</a> activando «Places API (New)». Conviene ponerle un límite de cuota.</p>
+    <div class="row"><button class="btn pri" id="btn-env-google">Guardar clave</button><button class="btn cian" id="btn-probar-google">Probar clave</button><button class="btn peligro sm" id="btn-borrar-google">Quitar clave</button></div>
+    <div class="resultado" id="res-google"></div>
+  </div>
+
+  <div class="panel" id="s-pref">
+    <h3>Preferencias de búsqueda y envío</h3>
+    <div class="form2">
+      <div><label class="campo" for="pf-fuente">Fuente por defecto</label><select id="pf-fuente" style="width:100%"><option value="google">Google Places</option><option value="osm">OpenStreetMap</option><option value="demo">Demo</option></select></div>
+      <div><label class="campo" for="pf-limite">Lugares por búsqueda</label><input type="number" id="pf-limite" min="1" max="60"></div>
+      <div><label class="campo" for="pf-radio">Radio por defecto (km)</label><input type="number" id="pf-radio" min="0.2" max="50" step="0.1"></div>
+      <div><label class="campo" for="pf-modo">Mails</label><select id="pf-modo" style="width:100%"><option value="borrador">Borradores en Gmail</option><option value="enviar">Enviar automáticamente</option><option value="eml">Archivos .eml</option></select></div>
+      <div><label class="campo" for="pf-canal">Canal preferido</label><select id="pf-canal" style="width:100%"><option value="auto">Automático</option><option value="mail">Solo mail</option><option value="whatsapp">Solo WhatsApp</option></select></div>
+      <div><label class="campo" for="pf-tanda">Máximo de mails por tanda</label><input type="number" id="pf-tanda" min="1" max="50"></div>
+      <div><label class="campo" for="pf-dia">Máximo de mails por día</label><input type="number" id="pf-dia" min="1" max="100"></div>
+      <div><label class="campo" for="pf-pmin">Pausa mínima entre envíos (s)</label><input type="number" id="pf-pmin" min="10" max="600"></div>
+      <div><label class="campo" for="pf-pmax">Pausa máxima entre envíos (s)</label><input type="number" id="pf-pmax" min="15" max="900"></div>
+    </div>
+    <label class="ayuda" style="display:flex;gap:8px;align-items:center;margin-top:14px"><input type="checkbox" id="pf-enriquecer"> Visitar la web de cada lugar para buscar mail, Instagram y WhatsApp</label>
+    <div class="row" style="margin-top:16px"><button class="btn pri" id="btn-pref">Guardar preferencias</button></div>
+  </div>
+  <div class="panel solo-web oculto" id="s-cuenta">
+    <h3>Mi cuenta</h3>
+    <p class="ayuda" style="margin-top:-4px">Tus datos (configuración, claves cifradas, CVs e historial) están separados de los de las demás personas.</p>
+    <div class="row"><button class="btn" id="btn-salir2">Salir</button><span class="spacer"></span><button class="btn peligro" id="btn-borrar-cuenta">Borrar mi cuenta y todos mis datos</button></div>
+  </div>
+  <div class="row solo-local"><span class="spacer"></span><button class="btn peligro" id="btn-apagar">⏻ Cerrar Postuladorsito</button></div>
+</section>
+
+<!-- ======================= PERSONALIZACIÓN ======================= -->
+<section id="v-apariencia" class="oculto">
+  <h1>Personalización <span class="neon">y apariencia</span></h1>
+  <p class="sub">Elegí un tema o armá tus propios colores. El cambio se ve al instante en toda la app (botones, tarjetas, badges y el pin del mapa) y queda guardado para la próxima vez.</p>
+  <div class="panel">
+    <div class="row" style="margin-bottom:14px"><h3 style="margin:0">Temas</h3><span class="spacer"></span><span class="ayuda" style="margin:0" id="tema-actual"></span></div>
+    <div class="temas" id="temas"></div>
+  </div>
+  <div class="panel">
+    <div class="row" style="margin-bottom:6px"><h3 style="margin:0">Colores a tu gusto</h3><span class="spacer"></span>
+      <button class="btn sm" id="btn-copiar-tema">Partir del tema actual</button><button class="btn sm peligro" id="btn-restaurar-tema">Restaurar tema por defecto</button></div>
+    <p class="ayuda" style="margin-top:0">Al mover cualquier control pasás a «Mis colores». Se guarda solo.</p>
+    <div class="custom-grid">
+      <div id="controles-color"></div>
+      <div>
+        <div class="ayuda" style="margin:0 0 8px">Vista previa</div>
+        <div class="muestra">
+          <div class="panel brillo">
+            <h2><span class="n">1</span>Así se ven tus colores</h2>
+            <div class="row"><span class="badge b-aprobado">Aprobado</span><span class="badge b-mail">Mail</span><span class="badge b-whatsapp">WhatsApp</span><span class="badge b-busca">🔥 Busca personal</span></div>
+            <input type="text" value="Texto de ejemplo en un campo" style="margin-top:12px" aria-label="Ejemplo">
+            <div class="chips"><span class="chip on">Elegido</span><span class="chip">Otro</span><span class="chip">Uno más</span></div>
+            <div class="row" style="margin-top:12px"><button class="btn pri">Botón principal</button><button class="btn cian">Secundario</button><button class="btn">Normal</button></div>
+            <div class="muestra-mapa"><div class="circ"></div><div class="pin"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<div id="cola" role="dialog" aria-modal="true" aria-labelledby="cola-titulo"><div class="cola-caja">
+  <div class="row"><b id="cola-titulo">⚡ Cola rápida de WhatsApp</b><span class="spacer"></span><span class="ayuda" style="margin:0" id="cola-contador"></span><button class="btn sm" id="cola-cerrar">Cerrar <kbd>Esc</kbd></button></div>
+  <div class="cola-prog"><i id="cola-barra" style="width:0"></i></div>
+  <div id="cola-cuerpo"></div>
+</div></div>
+<div id="job"><div class="hd"><div class="spin" id="job-spin"></div><b id="job-titulo">Trabajando…</b><span class="spacer"></span>
+  <button class="btn sm oculto" id="job-ir"></button><button class="btn sm" id="job-cerrar">Ocultar</button></div><pre id="job-log"></pre></div>
+<div class="modal-fondo" id="modal"><div class="modal" id="modal-caja"><h3 id="modal-titulo">Confirmar</h3><div id="modal-cuerpo"></div>
+  <div class="row" id="modal-botones"><span class="spacer"></span><button class="btn" id="modal-no">Cancelar</button><button class="btn pri" id="modal-si">Confirmar</button></div></div></div>
+<div id="toast" role="status"></div>
+<div id="apagado"><div><div class="marca">Postuladorsito</div><p class="sub" style="margin:16px auto">La app se cerró. Ya podés cerrar esta pestaña.<br>Para volver a abrirla, usá <b>iniciar_silencioso.vbs</b> o <b>abrir_app.bat</b>.</p></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
+<script>
+{
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const S={cfg:null,perfil:null,fuente:null,todo:false,modo:"rubro",cats:new Set(["atencion"]),geo:null,tanda:null,datos:null,sel:new Set(),actual:null,ptab:"mail",hist:null,
+         portales:null,filtroOf:"",pl:{perfil:null,tipo:"mail",original:""},mapa:null,pin:null,circulo:null};
+async function api(path,body){
+  const r=await fetch(path,body!==undefined?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{});
+  const j=await r.json().catch(()=>({}));
+  if(r.status===401&&j.login){location.href="/ingreso";throw new Error("Tu sesión terminó: volvé a ingresar");}
+  if(!r.ok) throw new Error(j.error||("Error "+r.status));
+  return j;
+}
+function toast(m,ms=3200){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),ms);}
+const fmtFecha=s=>{if(!s)return"";const d=new Date(s);return d.toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});};
+const hace=s=>{if(!s)return"nunca";const m=Math.round((Date.now()-new Date(s))/60000);if(m<1)return"recién";if(m<60)return`hace ${m} min`;const h=Math.round(m/60);if(h<24)return`hace ${h} h`;const d=Math.round(h/24);return`hace ${d} día${d>1?"s":""}`;};
+const kb=n=>n>1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/1024))+" KB";
+const ETQ={nuevo:"Nuevo",aprobado:"Aprobado",excluido:"Excluido",preparado:"Borrador sin enviar",contactado:"Contactado",respondio:"Respondió",descartado:"Descartado",
+  enviado:"Enviado",borrador:"Borrador",eml:"Archivo .eml",whatsapp_enviado:"WhatsApp enviado",whatsapp_preparado:"WA preparado",error:"Error",
+  guardada:"Guardada",vista:"Vista",postulado:"Me postulé",descartada:"Descartada"};
+const badge=e=>`<span class="badge b-${esc(e)}">${esc(ETQ[e]||e)}</span>`;
+const badgeCanal=c=>c==="mail"?'<span class="badge b-mail">Mail</span>':c==="whatsapp"?'<span class="badge b-whatsapp">WhatsApp</span>':'<span class="badge b-none">Solo redes</span>';
+const redes=l=>{const o=[];if(l.web)o.push(`<a href="${esc(/^https?:/.test(l.web)?l.web:"https://"+l.web)}" target="_blank" rel="noopener">Web</a>`);
+  if(l.instagram)o.push(`<a href="${esc(l.instagram)}" target="_blank" rel="noopener">Instagram</a>`);if(l.facebook)o.push(`<a href="${esc(l.facebook)}" target="_blank" rel="noopener">Facebook</a>`);
+  return`<span class="redes">${o.join("")}</span>`;};
+const archivo=r=>String(r||"").split("/").pop();
+function confirmar(titulo,html,{si="Confirmar",ancho=false,soloCerrar=false}={}){
+  return new Promise(res=>{$("#modal-titulo").textContent=titulo;$("#modal-cuerpo").innerHTML=html;$("#modal-si").textContent=si;
+    $("#modal-caja").classList.toggle("ancho",ancho);$("#modal-si").classList.toggle("oculto",soloCerrar);$("#modal-no").textContent=soloCerrar?"Cerrar":"Cancelar";
+    $("#modal").style.display="grid";
+    $("#modal-si").onclick=()=>{$("#modal").style.display="none";res(true)};$("#modal-no").onclick=()=>{$("#modal").style.display="none";res(false)};});
+}
+
+/* ---------------- navegación ---------------- */
+function ir(v){
+  if($("#job-spin").classList.contains("oculto")) $("#job").style.display="none";
+  $$("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+  $$("main > section").forEach(s=>s.classList.toggle("oculto",s.id!=="v-"+v));
+  ({revision:cargarTandas,whatsapp:cargarWA,historial:cargarHistorial,portales:cargarPortales,config:cargarConfigTab,apariencia:()=>{pintarTemas();pintarControles();}})[v]?.();
+  if(v==="buscar"&&S.mapa) setTimeout(()=>S.mapa.invalidateSize(),60);
+  $("main").scrollTop=0;
+}
+$$("nav button").forEach(b=>b.onclick=()=>ir(b.dataset.v));
+document.addEventListener("click",e=>{const b=e.target.closest("[data-abrir]");if(b)api("/api/abrir",{que:b.dataset.abrir}).catch(err=>toast(err.message));});
+
+/* ---------------- configuración general ---------------- */
+async function cargarConfig(){
+  S.cfg=await api("/api/config");
+  const c=S.cfg, e=c.envio||{};
+  const max=e.max_por_dia||25, pct=Math.min(100,Math.round(c.mails_hoy/max*100));
+  $("#pie").innerHTML=`<b>${esc(c.yo.nombre||(c.modo_web?c.usuario:"Sin nombre"))}</b><br>${esc(c.modo_web?"@"+c.usuario:(c.yo.email||""))}<div class="barra"><i style="width:${pct}%"></i></div>Mails hoy: <b>${c.mails_hoy}</b> de ${max}`
+    +(c.modo_web?`<div style="margin-top:10px"><button class="btn sm" id="btn-salir" style="width:100%">Salir</button></div>`:"");
+  if(c.modo_web){$("#btn-salir").onclick=salir;modoWeb();}
+  const falta=[];if(!c.yo.nombre)falta.push("tu nombre y teléfono (Mis datos)");if(!(c.cvs||[]).length)falta.push("tu CV en PDF (CVs)");
+  if(!c.credenciales.mail_password)falta.push("tu Gmail y la contraseña de aplicación (Claves y conexión)");
+  $("#primeros-pasos").classList.toggle("oculto",!falta.length);
+  $("#primeros-lista").textContent=falta.length?"Para que los mensajes salgan con tus datos, cargá: "+falta.join(" · ")+".":"";
+  if(!$("#limite").value) $("#limite").value=(c.busqueda||{}).limite||10;
+  S.fuente=S.fuente||(c.busqueda||{}).fuente||"osm";
+  $("#modo-mail").value=e.modo_mail||"borrador"; $("#canal-pref").value=e.canal_preferido||"auto";
+  if(!S.perfil||!c.perfiles.find(p=>p.nombre===S.perfil)) S.perfil=c.perfiles[0]?.nombre;
+  if(!S.geo){ const r=Math.round(((c.busqueda||{}).radio_km||3)*1000); $("#radio").value=Math.min(20000,Math.max(300,r)); pintarRadio(); }
+  pintarPerfiles(); pintarFuente(); pintarCvCorrida(); pintarCvOfertas(); pintarCategorias();
+}
+function pintarPerfiles(){
+  $("#perfiles").innerHTML=S.cfg.perfiles.map(p=>`<div class="perfil ${p.nombre===S.perfil?"on":""}" data-p="${esc(p.nombre)}" tabindex="0">
+    <b>${esc(p.nombre)}</b><small>${esc(p.descripcion)}</small></div>`).join("");
+  $$(".perfil").forEach(el=>el.onclick=()=>{S.perfil=el.dataset.p;pintarPerfiles();pintarCvCorrida();});
+  const p=S.cfg.perfiles.find(x=>x.nombre===S.perfil); if(!p) return;
+  $("#chips-rubro").innerHTML=p.rubros.map(r=>`<span class="chip ${$("#rubro").value===r&&!S.todo?"on":""}">${esc(r)}</span>`).join("");
+  $$("#chips-rubro .chip").forEach((ch,i)=>ch.onclick=()=>{ $("#rubro").value=p.rubros[i]; setModo("rubro"); pintarPerfiles(); verIntencion(); });
+  $("#chips-zona").innerHTML=p.zonas.map(z=>`<span class="chip">${esc(z)}</span>`).join("");
+  $$("#chips-zona .chip").forEach((ch,i)=>ch.onclick=()=>irAZona(p.zonas[i]));
+  resumen();
+}
+function pintarCvCorrida(){
+  const p=S.cfg.perfiles.find(x=>x.nombre===S.perfil)||{}, cvs=S.cfg.cvs||[];
+  const opciones=[`<option value="">CV del perfil: ${esc(archivo(p.cv)||"ninguno")}${p.cv&&!p.cv_existe?" (no está)":""}</option>`]
+    .concat(cvs.map(c=>`<option value="${esc(c.ruta)}">${esc(c.archivo)}${c.defecto?" · por defecto":""}</option>`));
+  const prev=$("#cv-corrida").value; $("#cv-corrida").innerHTML=opciones.join(""); if([...$("#cv-corrida").options].some(o=>o.value===prev)) $("#cv-corrida").value=prev;
+}
+function pintarFuente(){
+  const d={osm:"OpenStreetMap",google:"Google",demo:"Demo"};
+  $("#fuente").innerHTML=S.cfg.fuentes.map(f=>`<button class="${f===S.fuente?"on":""}" data-f="${f}">${d[f]||f}</button>`).join("");
+  $$("#fuente button").forEach(b=>b.onclick=()=>{S.fuente=b.dataset.f;pintarFuente();resumen();});
+  const ay={osm:"Gratis. Le faltan locales chicos y casi nunca trae el mail.",
+    google:S.cfg.credenciales.google?"La mejor cobertura: dirección, teléfono y web.":"⚠ Falta la clave de Google: cargala en Configuración → Claves.",demo:"Datos inventados para practicar."};
+  $("#ayuda-fuente").innerHTML=ay[S.fuente]||"";
+}
+function setModo(m){
+  S.modo=m; S.todo=(m==="todo");
+  $$(".modo").forEach(b=>{const on=b.dataset.modo===m;b.classList.toggle("on",on);b.setAttribute("aria-checked",on);});
+  $("#bloque-rubro").classList.toggle("oculto",m!=="rubro");$("#bloque-todo").classList.toggle("oculto",m!=="todo");$("#bloque-buscan").classList.toggle("oculto",m!=="buscan");
+  $("#btn-buscar").lastChild.textContent=m==="buscan"?"Buscar lugares que contratan":"Buscar lugares";
+  verIntencion();resumen();
+}
+$$(".modo").forEach(b=>b.onclick=()=>setModo(b.dataset.modo));
+function pintarCategorias(){
+  const cats=S.cfg.categorias||[];
+  $("#chips-cat").innerHTML=cats.map(c=>`<span class="chip cat ${S.cats.has(c.id)?"on":""}" data-c="${c.id}" role="checkbox" aria-checked="${S.cats.has(c.id)}" tabindex="0">${esc(c.nombre)}</span>`).join("");
+  $$("#chips-cat .chip").forEach(ch=>ch.onclick=()=>{const c=ch.dataset.c;S.cats.has(c)?S.cats.delete(c):S.cats.add(c);pintarCategorias();resumen();});
+}
+let tInt=null;
+function verIntencion(){
+  clearTimeout(tInt);
+  tInt=setTimeout(async()=>{
+    if(S.modo!=="rubro"){$("#intencion").innerHTML="";return;}
+    const t=$("#rubro").value.trim(); if(!t){$("#intencion").innerHTML="";return;}
+    try{const r=await api("/api/intencion?texto="+encodeURIComponent(t));
+      $("#intencion").innerHTML=`Voy a buscar: ${r.consultas.map(q=>`<span class="chip mini">${esc(q)}</span>`).join(" ")}`;}catch(e){}
+  },350);
+}
+$("#rubro").addEventListener("input",()=>{pintarPerfiles();verIntencion();});
+$("#limite").addEventListener("input",resumen);
+function resumen(){
+  const nombresCat=(S.cfg?.categorias||[]).filter(c=>S.cats.has(c.id)).map(c=>c.nombre);
+  const r=S.modo==="todo"?"lo que sea":S.modo==="buscan"?(nombresCat.length?"🔥 "+nombresCat.join(" + "):""):$("#rubro").value.trim(), z=$("#zona").value.trim();
+  $("#resumen-busqueda").textContent=(r&&(z||S.geo))?`«${r}» · ${z||"punto del mapa"}${S.geo?` · ${fmtRadio(S.geo.radio_m)}`:""} · hasta ${$("#limite").value}`:"Falta qué buscar y la zona.";
+}
+
+/* ---------------- mapa ---------------- */
+const fmtRadio=m=>m>=1000?(m/1000).toFixed(m%1000?1:0).replace(".",",")+" km":m+" m";
+function pintarRadio(){const m=+$("#radio").value;$("#radio-val").textContent=fmtRadio(m);if(S.geo)S.geo.radio_m=m;if(S.circulo)S.circulo.setRadius(m);resumen();}
+$("#radio").addEventListener("input",pintarRadio);
+$("#radio").addEventListener("change",()=>{if(S.circulo&&S.mapa)S.mapa.fitBounds(S.circulo.getBounds(),{padding:[20,20]});});
+function iniciarMapa(){
+  if(!window.L){$("#mapa").innerHTML='<div class="sin-mapa"><div><b>El mapa necesita internet</b><br>Igual podés escribir la zona abajo y buscar.</div></div>';return;}
+  const centro=[-34.7615,-58.4006];   // Lomas de Zamora
+  // zoomSnap:1 → siempre zoom entero: los tiles se muestran a tamaño nativo, sin reescalar (sin borroneo)
+  S.mapa=L.map("mapa",{zoomControl:true,attributionControl:true,zoomSnap:1,zoomDelta:1}).setView(centro,14);
+  // OpenStreetMap estándar: gratis y sin clave. La atribución es obligatoria.
+  // Sin detectRetina: OSM no tiene tiles @2x y bajaría un nivel de zoom (letras más chicas).
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{
+    maxZoom:19, maxNativeZoom:19, className:"tiles-vice", crossOrigin:false,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'}).addTo(S.mapa);
+  // Capa de tinte Vice City: va entre los tiles (z 200) y el círculo/pin (z 400/600), siempre del tamaño de la vista
+  const tinte=S.mapa.createPane("tinte"); tinte.style.zIndex=250;
+  const capaTinte=L.DomUtil.create("div","tinte-vice",tinte);
+  const ajustarTinte=()=>{const t=S.mapa.getSize();L.DomUtil.setPosition(capaTinte,S.mapa.containerPointToLayerPoint([0,0]));
+    capaTinte.style.width=t.x+"px";capaTinte.style.height=t.y+"px";};
+  S.mapa.on("move zoomend resize viewreset",ajustarTinte); ajustarTinte();
+  // Botón Neón / Claro (por si en algún barrio preferís el mapa original); se recuerda en este navegador
+  const Estilo=L.Control.extend({options:{position:"topright"},onAdd(){
+    const d=L.DomUtil.create("div","ctl-estilo leaflet-bar");d.innerHTML='<button data-m="neon">Neón</button><button data-m="claro">Claro</button>';
+    L.DomEvent.disableClickPropagation(d);
+    const poner=m=>{$("#mapa").classList.toggle("modo-claro",m==="claro");d.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.m===m));
+      try{localStorage.setItem("mapa_estilo",m);}catch(e){}};
+    d.querySelectorAll("button").forEach(b=>b.onclick=()=>poner(b.dataset.m));
+    S.ponerEstiloMapa=poner;
+    let m=document.documentElement.dataset.claro==="1"?"claro":"neon";try{m=localStorage.getItem("mapa_estilo")||m;}catch(e){} poner(m);
+    return d;}});
+  new Estilo().addTo(S.mapa);
+  S.mapa.on("click",e=>moverPin(e.latlng.lat,e.latlng.lng,true));
+}
+function moverPin(lat,lon,nombrar,etiqueta){
+  const r=+$("#radio").value; S.geo={lat:+lat.toFixed(6),lon:+lon.toFixed(6),radio_m:r};
+  if(S.mapa){
+    if(!S.pin){
+      S.pin=L.marker([lat,lon],{draggable:true,icon:L.divIcon({className:"",html:'<div class="pin"></div>',iconSize:[22,22],iconAnchor:[11,11]})}).addTo(S.mapa);
+      S.pin.on("dragend",()=>{const p=S.pin.getLatLng();moverPin(p.lat,p.lng,true);});
+      // borde más grueso + brillo (clase circulo-radio) para que se destaque sobre el mapa oscuro
+      const ac=getVar("--accent-primary")||"#ff2e97";
+      S.circulo=L.circle([lat,lon],{radius:r,color:ac,weight:3,opacity:1,fillColor:ac,fillOpacity:.10,className:"circulo-radio",interactive:false}).addTo(S.mapa);
+    }else{S.pin.setLatLng([lat,lon]);S.circulo.setLatLng([lat,lon]);}
+    S.mapa.fitBounds(S.circulo.getBounds(),{padding:[20,20]});
+  }
+  if(etiqueta) $("#zona").value=etiqueta;
+  if(nombrar) nombrarZona(lat,lon);
+  resumen();
+}
+let tRev=null;
+function nombrarZona(lat,lon){
+  clearTimeout(tRev);
+  tRev=setTimeout(async()=>{
+    try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&accept-language=es&lat=${lat}&lon=${lon}`).then(r=>r.json());
+      const a=r.address||{}; const n=a.suburb||a.neighbourhood||a.city_district||a.town||a.city||a.village||a.county||"";
+      if(n) $("#zona").value=n+(a.city&&a.city!==n&&a.suburb?`, ${a.city}`:""); resumen();}catch(e){}
+  },500);
+}
+async function geocodificar(q){
+  const p=S.geo||{lat:-34.76,lon:-58.40};
+  const r=await fetch(`https://photon.komoot.io/api/?limit=6&q=${encodeURIComponent(q)}&lat=${p.lat}&lon=${p.lon}&bbox=-73.6,-55.1,-53.6,-21.8`).then(r=>r.json());
+  return (r.features||[]).map(f=>{const x=f.properties||{};const titulo=[x.name,x.street&&(x.street+(x.housenumber?" "+x.housenumber:""))].filter(Boolean)[0]||x.city||"";
+    const det=[x.district||x.locality,x.city,x.state].filter(v=>v&&v!==titulo).join(", ");
+    return{titulo,det,lat:f.geometry.coordinates[1],lon:f.geometry.coordinates[0],zona:x.street?(x.district||x.locality||x.city||titulo):(x.name||x.district||x.city||titulo)};});
+}
+let tSug=null, sugs=[], sugIdx=-1;
+$("#buscar-dir").addEventListener("input",()=>{
+  clearTimeout(tSug); const q=$("#buscar-dir").value.trim();
+  if(q.length<3){$("#sugerencias").classList.add("oculto");return;}
+  tSug=setTimeout(async()=>{try{sugs=await geocodificar(q);sugIdx=-1;pintarSugs();}catch(e){$("#sugerencias").innerHTML='<button disabled>Sin conexión para buscar direcciones</button>';$("#sugerencias").classList.remove("oculto");}},400);
+});
+function pintarSugs(){
+  if(!sugs.length){$("#sugerencias").innerHTML='<button disabled>No encontré esa dirección</button>';}
+  else $("#sugerencias").innerHTML=sugs.map((s,i)=>`<button class="${i===sugIdx?"on":""}" data-i="${i}">${esc(s.titulo)}<small>${esc(s.det)}</small></button>`).join("");
+  $("#sugerencias").classList.remove("oculto");
+  $$("#sugerencias button[data-i]").forEach(b=>b.onclick=()=>elegirSug(+b.dataset.i));
+}
+function elegirSug(i){const s=sugs[i];if(!s)return;$("#buscar-dir").value=s.titulo;$("#sugerencias").classList.add("oculto");moverPin(s.lat,s.lon,false,s.zona);}
+$("#buscar-dir").addEventListener("keydown",e=>{
+  if($("#sugerencias").classList.contains("oculto")||!sugs.length)return;
+  if(e.key==="ArrowDown"){e.preventDefault();sugIdx=Math.min(sugs.length-1,sugIdx+1);pintarSugs();}
+  if(e.key==="ArrowUp"){e.preventDefault();sugIdx=Math.max(0,sugIdx-1);pintarSugs();}
+  if(e.key==="Enter"){e.preventDefault();elegirSug(Math.max(0,sugIdx));}
+  if(e.key==="Escape")$("#sugerencias").classList.add("oculto");
+});
+document.addEventListener("click",e=>{if(!e.target.closest(".buscador"))$("#sugerencias").classList.add("oculto");});
+async function irAZona(nombre,silencioso){
+  $("#zona").value=nombre; resumen();
+  try{const r=await geocodificar(nombre);if(r[0])moverPin(r[0].lat,r[0].lon,false,nombre);}catch(e){S.geo=null;if(!silencioso)toast("Sin conexión al mapa: se busca por el nombre de la zona");}
+}
+$("#btn-ubicacion").onclick=()=>{
+  if(!window.isSecureContext||!navigator.geolocation){toast("Tu navegador no deja usar la ubicación acá (desde el celu por Wi-Fi no se puede). Usá el buscador o tocá el mapa.",6000);return;}
+  $("#btn-ubicacion").disabled=true;
+  navigator.geolocation.getCurrentPosition(p=>{$("#btn-ubicacion").disabled=false;moverPin(p.coords.latitude,p.coords.longitude,true);toast("Listo: centré el mapa en tu ubicación");},
+    err=>{$("#btn-ubicacion").disabled=false;toast(err.code===1?"No diste permiso para usar tu ubicación":"No pude obtener tu ubicación",5000);},{enableHighAccuracy:true,timeout:12000});
+};
+$("#zona").addEventListener("input",resumen);
+
+$("#btn-buscar").onclick=async()=>{
+  const base={perfil:S.perfil,zona:$("#zona").value,limite:+$("#limite").value,fuente:S.fuente,cv:$("#cv-corrida").value};
+  if(S.geo) Object.assign(base,{lat:S.geo.lat,lon:S.geo.lon,radio_m:S.geo.radio_m});
+  if(!base.zona.trim()&&!S.geo) return toast("Elegí una zona: escribila, usá tu ubicación o tocá el mapa");
+  try{
+    if(S.modo==="buscan"){
+      if(!S.cats.size) return toast("Elegí al menos una categoría");
+      await api("/api/buscan",{...base,categorias:[...S.cats],solo_senales:$("#solo-senales").checked,dias:+$("#buscan-dias").value});
+      seguirJob("Buscando lugares que contratan…");
+    }else{
+      const p={...base,rubro:$("#rubro").value,todo:S.modo==="todo"};
+      if(!p.todo&&!p.rubro.trim()) return toast("Escribí qué buscás o elegí «Lo que sea»");
+      await api("/api/buscar",p);seguirJob("Buscando lugares…");
+    }
+  }catch(e){toast(e.message);}
+};
+
+/* ---------------- tareas en curso ---------------- */
+let jobTimer=null;
+function seguirJob(titulo){
+  $("#job").style.display="block";$("#job-titulo").textContent=titulo;$("#job-spin").classList.remove("oculto");$("#job-ir").classList.add("oculto");$("#job-log").textContent="";
+  clearInterval(jobTimer);
+  jobTimer=setInterval(async()=>{
+    const j=await api("/api/job").catch(()=>null);if(!j)return;
+    const pre=$("#job-log"),abajo=pre.scrollTop+pre.clientHeight>=pre.scrollHeight-20;pre.textContent=j.log;if(abajo)pre.scrollTop=pre.scrollHeight;
+    if(j.estado!=="corriendo"){
+      clearInterval(jobTimer);$("#job-spin").classList.add("oculto");$("#job-titulo").textContent=j.estado==="ok"?"Listo ✓":"Terminó con error";
+      cargarConfig();
+      if(j.estado==="ok"&&j.tipo==="buscar"&&j.resultado){S.tanda=j.resultado.tanda;ir("revision");toast("Búsqueda lista: revisá la tanda");setTimeout(()=>{$("#job").style.display="none";},2600);}
+      if(j.estado==="ok"&&j.tipo==="enviar"){cargarTanda();contadorWA();$("#job-ir").textContent="Ir a WhatsApp";$("#job-ir").classList.remove("oculto");$("#job-ir").onclick=()=>ir("whatsapp");}
+    }
+  },700);
+}
+$("#job-cerrar").onclick=()=>{$("#job").style.display="none";};
+
+/* ---------------- REVISIÓN ---------------- */
+async function cargarTandas(){
+  const tandas=await api("/api/tandas");
+  $("#rev-vacio").classList.toggle("oculto",tandas.length>0);$("#rev-contenido").classList.toggle("oculto",!tandas.length);
+  if(!tandas.length)return;
+  if(!S.tanda||!tandas.find(t=>t.id===S.tanda))S.tanda=tandas[0].id;
+  $("#sel-tanda").innerHTML=tandas.map(t=>{const pend=(t.conteo.nuevo||0)+(t.conteo.aprobado||0);
+    return`<option value="${t.id}" ${t.id===S.tanda?"selected":""}>#${t.id} · ${esc(t.rubro)} · ${esc(t.zona)} · ${fmtFecha(t.fecha)} · ${t.total}${pend?` (${pend} pendientes)`:""}</option>`;}).join("");
+  cargarTanda();
+}
+$("#sel-tanda").onchange=()=>{S.tanda=+$("#sel-tanda").value;S.actual=null;cargarTanda();};
+$("#canal-pref").onchange=()=>cargarTanda();
+$("#forzar").onchange=()=>pintarTabla();
+const editable=l=>["nuevo","aprobado","excluido"].includes(l.estado);
+const bloqueado=l=>!editable(l)||(l.ya_contactado&&!$("#forzar").checked);
+async function cargarTanda(){
+  if(!S.tanda)return;
+  S.datos=await api(`/api/tanda/${S.tanda}?canal=${$("#canal-pref").value}`);
+  S.sel=new Set(S.datos.lugares.filter(l=>["nuevo","aprobado"].includes(l.estado)&&!l.ya_contactado).map(l=>l.id));
+  const t=S.datos.tanda;
+  $("#info-tanda").innerHTML=`<div><span>Tanda</span><b>#${t.id}</b></div><div><span>Perfil</span><b>${esc(t.perfil)}</b></div>
+    <div><span>CV</span>${S.datos.cv_existe?"":'<span class="no">⚠ no encontrado </span>'}<b>${esc(archivo(S.datos.cv))}</b></div>
+    <div><span>Buscó</span><b>${esc(t.rubro)}</b></div><div><span>Zona</span><b>${esc(t.zona)}</b>${t.radio_m?` · ${fmtRadio(t.radio_m)}`:""}</div>
+    <div><span>Fuente</span>${esc(t.fuente)}</div><div><span>Fecha</span>${fmtFecha(t.fecha)}</div>`;
+  pintarTabla();
+  if(S.actual&&S.datos.lugares.find(l=>l.id===S.actual))verPreview(S.actual);else if(S.datos.lugares[0])verPreview(S.datos.lugares[0].id);
+}
+function pintarTabla(){
+  const L=S.datos.lugares;
+  if(!L.length){$("#tbody-rev").innerHTML='<tr><td colspan="6" class="vacio">Esta búsqueda no trajo lugares nuevos.</td></tr>';resumenSel();return;}
+  $("#tbody-rev").innerHTML=L.map(l=>{const b=bloqueado(l);return`<tr data-id="${l.id}" class="${S.actual===l.id?"sel":""} ${b?"off":""}">
+    <td class="chk"><input type="checkbox" ${S.sel.has(l.id)&&!b?"checked":""} ${b?"disabled":""} aria-label="Seleccionar ${esc(l.nombre)}"></td>
+    <td><b>${esc(l.nombre)}</b><div class="dir">${esc(l.direccion)}</div>${l.rubro&&S.datos.tanda.modo!=="rubro"?`<div class="dir">${esc(l.rubro)}</div>`:""}
+      ${l.busca_personal>0?`<div style="margin-top:4px"><span class="badge b-busca" title="Qué tan clara es la señal de que buscan personal">🔥 Busca personal<span class="medidor"><i style="width:${l.busca_personal}%"></i></span></span>
+        ${l.url_empleo?` <a href="${esc(l.url_empleo)}" target="_blank" rel="noopener" style="font-size:12.5px" onclick="event.stopPropagation()">Ver página de empleo ↗</a>`:""}</div>
+        ${l.senal_empleo?`<div class="senal">«${esc(l.senal_empleo.slice(0,150))}»</div>`:""}`:""}
+      ${l.ya_contactado?`<div class="aviso">Ya contactado: ${esc(l.ya_contactado)}</div>`:""}${l.preparado?`<div class="aviso">Tiene ${esc(l.preparado)}: marcalo en Historial cuando lo mandes</div>`:""}</td>
+    <td>${badgeCanal(l.canal)}</td><td style="font-size:13px;overflow-wrap:anywhere">${esc(l.canal==="whatsapp"?"+"+l.destino:l.destino)}</td>
+    <td>${redes(l)}</td><td>${badge(l.estado)}</td></tr>`;}).join("");
+  $$("#tbody-rev tr[data-id]").forEach(tr=>{const id=+tr.dataset.id,cb=tr.querySelector("input");
+    cb.onclick=e=>{e.stopPropagation();cb.checked?S.sel.add(id):S.sel.delete(id);resumenSel();};tr.onclick=()=>verPreview(id);});
+  resumenSel();
+}
+const seleccionados=()=>S.datos.lugares.filter(l=>S.sel.has(l.id)&&!bloqueado(l));
+const cupo=()=>{const e=S.cfg.envio||{};return Math.max(0,Math.min(e.max_por_tanda||10,(e.max_por_dia||25)-S.cfg.mails_hoy));};
+function resumenSel(){
+  const s=seleccionados(),m=s.filter(l=>l.canal==="mail").length,w=s.filter(l=>l.canal==="whatsapp").length;
+  $("#resumen-sel").innerHTML=`<span><b>${s.length}</b> seleccionados</span><span><b>${m}</b> por mail</span><span><b>${w}</b> por WhatsApp</span><span><b>${s.length-m-w}</b> solo redes</span>`;
+  $("#cupo").textContent=`Cupo de mails ahora: ${cupo()} (hoy van ${S.cfg.mails_hoy} de ${(S.cfg.envio||{}).max_por_dia||25})`;
+  $("#btn-procesar").disabled=!s.length;
+}
+$("#sel-todos").onclick=()=>{S.datos.lugares.forEach(l=>{if(!bloqueado(l))S.sel.add(l.id);});pintarTabla();};
+$("#sel-ninguno").onclick=()=>{S.sel.clear();pintarTabla();};
+async function verPreview(id,manual){
+  S.actual=id;$$("#tbody-rev tr").forEach(tr=>tr.classList.toggle("sel",+tr.dataset.id===id));
+  const l=S.datos.lugares.find(x=>x.id===id),p=await api(`/api/preview/${id}`);
+  if(!manual)S.ptab=l.canal==="mail"?"mail":"wa";
+  const mail=`<div class="mailbox"><div class="hdr"><div><span>Para:</span>${p.lugar.email?esc(p.lugar.email):'<i class="no">sin mail</i>'}</div>
+    <div><span>Asunto:</span><b>${esc(p.asunto)}</b></div></div><div class="body">${esc(p.cuerpo)}</div><div class="adj">📎 ${esc(archivo(p.adjunto))}</div></div>`;
+  const wa=`<div class="wa-fondo"><div class="burbuja">${esc(p.whatsapp)}</div></div>
+    <div class="row" style="margin-top:10px">${p.link?`<span class="ayuda" style="margin:0">+${esc(p.numero)}</span><span class="spacer"></span><a class="btn sm" href="${esc(p.link)}" target="_blank" rel="noopener">Probar enlace</a>`:'<span class="no">Sin celular válido</span>'}</div>`;
+  $("#preview-cuerpo").className="";
+  $("#preview-cuerpo").innerHTML=`<div style="margin-bottom:10px"><b>${esc(l.nombre)}</b> ${badgeCanal(l.canal)}</div>
+    <div class="ptabs"><button data-t="mail" class="${S.ptab==="mail"?"on":""}">Mail</button><button data-t="wa" class="${S.ptab==="wa"?"on":""}">WhatsApp</button></div>${S.ptab==="mail"?mail:wa}`;
+  $$("#preview-cuerpo .ptabs button").forEach(b=>b.onclick=()=>{S.ptab=b.dataset.t;verPreview(id,true);});
+}
+function payloadSel(){const ed=S.datos.lugares.filter(editable);
+  return{tanda:S.tanda,aprobados:ed.filter(l=>S.sel.has(l.id)&&!bloqueado(l)).map(l=>l.id),excluidos:ed.filter(l=>!S.sel.has(l.id)||bloqueado(l)).map(l=>l.id)};}
+$("#btn-guardar").onclick=async()=>{try{await api("/api/seleccion",payloadSel());toast("Selección guardada");cargarTanda();}catch(e){toast(e.message);}};
+$("#btn-procesar").onclick=async()=>{
+  const s=seleccionados(),mails=s.filter(l=>l.canal==="mail"),wa=s.filter(l=>l.canal!=="mail"),modo=$("#modo-mail").value,c=cupo(),e=S.cfg.envio||{};
+  const etq={borrador:"quedan como <b>borradores</b> en tu Gmail",enviar:"se <b>envían automáticamente</b>",eml:"se guardan como <b>archivos .eml</b>"}[modo];
+  let h="<ul>";
+  if(mails.length){h+=`<li><b>${Math.min(mails.length,c)}</b> mails ${etq}, con <b>${esc(archivo(S.datos.cv))}</b> adjunto.</li>`;
+    if(mails.length>c)h+=`<li class="warn">Por los topes, ${mails.length-c} quedan para la próxima corrida.</li>`;
+    if(modo==="enviar")h+=`<li>Pausa al azar de ${e.pausa_min_seg||45} a ${e.pausa_max_seg||120} s entre mails. No cierres la app mientras tanto.</li>`;
+    if(modo!=="eml"&&!S.cfg.credenciales.mail_password)h+=`<li class="no">Falta la contraseña de Gmail: cargala en Configuración → Claves.</li>`;}
+  if(!S.cfg.yo.nombre)h+=`<li class="no">Todavía no cargaste tu nombre: el mensaje saldría sin firma. Completalo en Configuración → Mis datos.</li>`;
+  if(wa.length)h+=`<li><b>${wa.length}</b> pasan a la pestaña WhatsApp.</li>`;
+  h+=`<li>Los ${S.datos.lugares.filter(editable).length-s.length} no tildados quedan como <b>excluidos</b> (vuelven a aparecer en búsquedas futuras).</li></ul>`;
+  if($("#forzar").checked)h+='<p class="warn">Ojo: activaste «reenviar a ya contactados».</p>';
+  if(!await confirmar("¿Procesamos la tanda?",h,{si:"Dale"}))return;
+  try{await api("/api/enviar",{...payloadSel(),modo,canal:$("#canal-pref").value,forzar:$("#forzar").checked});seguirJob("Procesando tanda…");}catch(err){toast(err.message);}
+};
+
+/* ---------------- WHATSAPP ---------------- */
+async function contadorWA(){const d=await api("/api/whatsapp").catch(()=>null);if(!d)return d;const n=d.pendientes.filter(x=>x.link).length;
+  $("#cnt-wa").textContent=n;$("#cnt-wa").classList.toggle("oculto",!n);return d;}
+async function cargarWA(){
+  const d=await contadorWA();if(!d)return;const P=d.pendientes;
+  $("#cards-wa").innerHTML=P.length?P.map(l=>`<div class="card" data-id="${l.id}" data-num="${esc(l.numero)}">
+    <h3>${esc(l.nombre)}</h3><div class="meta">${esc(l.rubro)} · ${esc(l.zona)} · ${l.numero?"+"+esc(l.numero):'<span class="no">sin celular válido</span>'} ${redes(l)}</div>
+    <textarea aria-label="Mensaje para ${esc(l.nombre)}">${esc(l.texto)}</textarea>
+    <div class="row">${l.numero?`<a class="btn wa sm" data-a="abrir" target="_blank" rel="noopener" href="https://wa.me/${esc(l.numero)}?text=${encodeURIComponent(l.texto)}">Abrir WhatsApp</a>`:""}
+      <button class="btn sm" data-a="copiar">Copiar</button><span class="spacer"></span>${l.numero?'<button class="btn sm" data-a="enviado">✔ Enviado</button>':""}
+      <button class="btn sm peligro" data-a="descartar">Descartar</button></div></div>`).join("")
+    :'<div class="panel vacio" style="grid-column:1/-1"><b>No hay chats pendientes</b>Cuando proceses una tanda, los lugares sin mail aparecen acá.</div>';
+  $$("#cards-wa .card").forEach(card=>{const id=+card.dataset.id,ta=card.querySelector("textarea"),link=card.querySelector("a[data-a='abrir']");
+    if(link)ta.addEventListener("input",()=>{link.href=`https://wa.me/${card.dataset.num}?text=${encodeURIComponent(ta.value)}`;});
+    card.querySelectorAll("[data-a]").forEach(b=>b.onclick=async()=>{const a=b.dataset.a;
+      if(a==="abrir")card.classList.add("abierto");
+      if(a==="copiar"){await navigator.clipboard?.writeText(ta.value).catch(()=>{});toast("Texto copiado");}
+      if(a==="enviado"){await api("/api/marcar",{ids:[id],canal:"whatsapp"});toast("Registrado como enviado");cargarWA();}
+      if(a==="descartar"){await api("/api/marcar",{ids:[id],estado:"descartado"});toast("Descartado");cargarWA();}});});
+  const R=d.solo_redes;$("#redes-wrap").classList.toggle("oculto",!R.length);
+  $("#tbody-redes").innerHTML=R.map(l=>`<tr data-id="${l.id}" style="cursor:default"><td><b>${esc(l.nombre)}</b><div class="dir">${esc(l.direccion)}</div></td><td>${redes(l)||"—"}</td><td>${esc(l.telefono||"")}</td>
+    <td style="white-space:nowrap"><button class="btn sm" data-a="contactado">Ya le escribí</button> <button class="btn sm peligro" data-a="descartado">Descartar</button></td></tr>`).join("");
+  $$("#tbody-redes tr").forEach(tr=>tr.querySelectorAll("[data-a]").forEach(b=>b.onclick=async()=>{await api("/api/marcar",{ids:[+tr.dataset.id],estado:b.dataset.a});toast("Actualizado");cargarWA();}));
+}
+
+/* ---------------- PORTALES ---------------- */
+const COLOR_PORTAL={linkedin:"#22e4ff",computrabajo:"#ff6bb5",indeed:"#9b5cff",google:"#ffb547"};
+const PUESTOS=["Atención al cliente","Soporte IT","Repositor","Vendedor","Administrativo","Desarrollador Jr","Mozo","Operario de depósito"];
+let portalesElegidos=new Set(["linkedin","computrabajo","indeed","google"]);
+function pintarPortalesChips(){
+  const n={linkedin:"LinkedIn",computrabajo:"Computrabajo",indeed:"Indeed",google:"Google Empleos"};
+  $("#p-portales").innerHTML=Object.keys(n).map(k=>`<span class="chip ${portalesElegidos.has(k)?"on":""}" data-k="${k}">${n[k]}</span>`).join("");
+  $$("#p-portales .chip").forEach(c=>c.onclick=()=>{portalesElegidos.has(c.dataset.k)?portalesElegidos.delete(c.dataset.k):portalesElegidos.add(c.dataset.k);pintarPortalesChips();});
+  $("#chips-puesto").innerHTML=PUESTOS.map(p=>`<span class="chip">${esc(p)}</span>`).join("");
+  $$("#chips-puesto .chip").forEach((c,i)=>c.onclick=()=>{$("#p-puesto").value=PUESTOS[i];});
+}
+function pintarCvOfertas(){const cvs=S.cfg.cvs||[];const prev=$("#o-cv").value;
+  $("#o-cv").innerHTML='<option value="">—</option>'+cvs.map(c=>`<option value="${esc(c.ruta)}" ${c.defecto?"selected":""}>${esc(c.archivo)}</option>`).join("");if(prev)$("#o-cv").value=prev;}
+async function cargarPortales(){
+  pintarPortalesChips();
+  if(!$("#p-ubic").value)$("#p-ubic").value=S.cfg.yo.zona||"";
+  S.portales=await api("/api/portales");pintarOfertas();pintarBusquedas();
+}
+$("#btn-portales").onclick=async()=>{
+  try{const r=await api("/api/portales/generar",{puesto:$("#p-puesto").value,ubicacion:$("#p-ubic").value,dias:+$("#p-dias").value,remoto:$("#p-remoto").checked,portales:[...portalesElegidos]});
+    $("#portal-links").innerHTML=r.busquedas.map(b=>`<div class="portal"><b><span class="dot" style="background:${COLOR_PORTAL[b.portal]};box-shadow:0 0 10px ${COLOR_PORTAL[b.portal]}"></span>${esc(b.nombre)}</b>
+      <span class="ayuda" style="margin:0">${esc($("#p-puesto").value)} · ${esc($("#p-dias").selectedOptions[0].text.toLowerCase())}</span>
+      <a class="btn sm cian" href="${esc(b.url)}" target="_blank" rel="noopener" data-bid="${b.id}">Abrir búsqueda ↗</a></div>`).join("");
+    S.portales=await api("/api/portales");pintarBusquedas();}catch(e){toast(e.message);}
+};
+document.addEventListener("click",e=>{const a=e.target.closest("a[data-bid]");if(a)api("/api/portales/abierta",{id:+a.dataset.bid}).then(()=>api("/api/portales")).then(d=>{S.portales=d;pintarBusquedas();}).catch(()=>{});});
+function pintarBusquedas(){
+  const B=S.portales.busquedas;
+  $("#lista-busquedas").innerHTML=B.length?`<div class="tabla-wrap"><table><thead><tr><th>Puesto</th><th>Portal</th><th>Filtro</th><th>Abierta</th><th></th></tr></thead><tbody>${B.map(b=>`<tr style="cursor:default">
+    <td><b>${esc(b.puesto)}</b><div class="dir">${esc(b.ubicacion||"Argentina")}${b.remoto?" · remoto":""}</div></td>
+    <td><span class="dot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${COLOR_PORTAL[b.portal]||"#fff"};margin-right:6px"></span>${esc(S.portales.portales[b.portal]||b.portal)}</td>
+    <td>${b.dias===1?"24 h":b.dias+" días"}</td><td>${b.aperturas?`${hace(b.ultima_apertura)} · ${b.aperturas}×`:'<span class="warn">sin abrir</span>'}</td>
+    <td class="acc-h"><a class="btn sm cian" href="${esc(b.url)}" target="_blank" rel="noopener" data-bid="${b.id}">Abrir ↗</a> <button class="btn sm peligro" data-borrar-b="${b.id}" aria-label="Borrar búsqueda">✕</button></td></tr>`).join("")}</tbody></table></div>`
+    :'<div class="vacio"><b>Sin búsquedas guardadas</b>Generá una arriba.</div>';
+  $$("[data-borrar-b]").forEach(b=>b.onclick=async()=>{await api("/api/portales/borrar",{id:+b.dataset.borrarB});S.portales=await api("/api/portales");pintarBusquedas();});
+}
+function pintarOfertas(){
+  const O=S.portales.ofertas, est=["","guardada","vista","postulado","descartada"];
+  const cuenta=e=>O.filter(o=>!e||o.estado===e).length;
+  $("#filtro-ofertas").innerHTML=est.map(e=>`<button class="${S.filtroOf===e?"on":""}" data-e="${e}">${e?ETQ[e]:"Todas"} (${cuenta(e)})</button>`).join("");
+  $$("#filtro-ofertas button").forEach(b=>b.onclick=()=>{S.filtroOf=b.dataset.e;pintarOfertas();});
+  const F=O.filter(o=>!S.filtroOf||o.estado===S.filtroOf);
+  $("#lista-ofertas").innerHTML=F.length?`<div class="tabla-wrap"><table><thead><tr><th>Oferta</th><th>Estado</th><th>Notas</th><th></th></tr></thead><tbody>${F.map(o=>`<tr data-o="${o.id}" style="cursor:default">
+    <td><a href="${esc(o.url)}" target="_blank" rel="noopener" data-vista="${o.id}"><b>${esc(o.titulo||"Oferta sin título")}</b></a>
+      <div class="dir">${esc([o.empresa,o.portal,o.ubicacion].filter(Boolean).join(" · "))} · guardada ${hace(o.creada)}${o.postulado_en?` · te postulaste ${hace(o.postulado_en)}${o.cv?" con "+esc(archivo(o.cv)):""}`:""}</div></td>
+    <td>${badge(o.estado)}</td><td style="min-width:180px"><input type="text" value="${esc(o.notas)}" data-notas="${o.id}" placeholder="Agregar nota…" style="padding:6px 9px;font-size:13.5px"></td>
+    <td class="acc-h"><button class="btn sm" data-est="postulado">✔ Me postulé</button> <button class="btn sm" data-est="vista">Vista</button> <button class="btn sm peligro" data-est="descartada">Descartar</button> <button class="btn sm" data-borrar-o aria-label="Borrar oferta">✕</button></td></tr>`).join("")}</tbody></table></div>`
+    :'<div class="vacio"><b>Sin ofertas acá</b>Pegá el link de un aviso para guardarlo.</div>';
+  $$("#lista-ofertas tr[data-o]").forEach(tr=>{const id=+tr.dataset.o;
+    tr.querySelectorAll("[data-est]").forEach(b=>b.onclick=async()=>{await api("/api/ofertas/estado",{id,estado:b.dataset.est,cv:$("#o-cv").value});S.portales=await api("/api/portales");pintarOfertas();toast("Oferta actualizada");});
+    tr.querySelector("[data-borrar-o]").onclick=async()=>{if(!await confirmar("¿Borrar esta oferta?","Se quita de tu lista. No afecta nada en el portal.",{si:"Borrar"}))return;await api("/api/ofertas/borrar",{id});S.portales=await api("/api/portales");pintarOfertas();};
+    tr.querySelector("[data-notas]").onchange=e=>api("/api/ofertas/notas",{id,notas:e.target.value}).then(()=>toast("Nota guardada"));
+    tr.querySelector("[data-vista]").onclick=()=>{const o=S.portales.ofertas.find(x=>x.id===id);if(o&&o.estado==="guardada")api("/api/ofertas/estado",{id,estado:"vista"}).then(()=>api("/api/portales")).then(d=>{S.portales=d;pintarOfertas();});};});
+}
+async function guardarOferta(estado){
+  try{const r=await api("/api/ofertas",{url:$("#o-url").value,titulo:$("#o-titulo").value,empresa:$("#o-empresa").value,notas:$("#o-notas").value,estado});
+    if(estado==="postulado")await api("/api/ofertas/estado",{id:r.id,estado,cv:$("#o-cv").value});
+    toast(r.nueva?"Oferta guardada":"Ya la tenías: la actualicé");["#o-url","#o-titulo","#o-empresa","#o-notas"].forEach(s=>$(s).value="");
+    S.portales=await api("/api/portales");pintarOfertas();}catch(e){toast(e.message);}
+}
+$("#btn-oferta").onclick=()=>guardarOferta("guardada");
+$("#btn-oferta-postulado").onclick=()=>guardarOferta("postulado");
+
+/* ---------------- HISTORIAL ---------------- */
+async function cargarHistorial(){
+  S.hist=await api("/api/historial");const n=e=>(S.hist.resumen.find(r=>r.estado===e)||{}).n||0,tot=S.hist.resumen.reduce((a,r)=>a+r.n,0),of=S.hist.ofertas||{};
+  $("#kpis").innerHTML=[["Lugares registrados",tot,""],["Sin contactar",n("nuevo")+n("aprobado")+n("excluido"),"c"],["Borradores sin enviar",n("preparado"),""],["Contactados",n("contactado"),"p"],
+    ["Respondieron",n("respondio"),"g"],["Postulaciones en portales",of.postulado||0,"p"],["Mails hoy",S.hist.mails_hoy,"c"]].map(([k,v,c])=>`<div class="kpi ${c}"><b>${v}</b><span>${k}</span></div>`).join("");
+  const est=[...new Set(S.hist.envios.map(e=>e.estado))],prev=$("#filtro-estado").value;
+  $("#filtro-estado").innerHTML='<option value="">Todos los estados</option>'+est.map(e=>`<option value="${esc(e)}">${esc(ETQ[e]||e)}</option>`).join("");$("#filtro-estado").value=prev;
+  pintarHistorial();
+}
+function pintarHistorial(){
+  const q=$("#filtro-h").value.toLowerCase(),c=$("#filtro-canal").value,es=$("#filtro-estado").value;
+  const F=S.hist.envios.filter(e=>(!c||e.canal===c)&&(!es||e.estado===es)&&(!q||[e.nombre,e.rubro,e.zona,e.destino,e.perfil].join(" ").toLowerCase().includes(q)));
+  $("#tbody-hist").innerHTML=F.length?F.map(e=>`<tr data-l="${e.lugar_id}" style="cursor:default"><td style="white-space:nowrap">${fmtFecha(e.fecha)}</td><td><b>${esc(e.nombre)}</b></td>
+    <td>${esc(e.rubro)}<div class="dir">${esc(e.zona)}</div></td><td style="font-size:12.5px">${esc(archivo(e.cv))}</td><td>${badgeCanal(e.canal)}</td>
+    <td style="font-size:12.5px;overflow-wrap:anywhere">${esc(e.destino)}</td><td>${badge(e.estado)}</td><td>${badge(e.estado_lugar)}</td>
+    <td class="acc-h">${["borrador","eml"].includes(e.estado)&&e.estado_lugar==="preparado"?'<button class="btn sm" data-a="lo-envie">📤 Lo envié</button> ':""}<button class="btn sm" data-a="respondio">✓ Respondió</button> <button class="btn sm peligro" data-a="descartado" aria-label="Descartar">✕</button></td></tr>`).join("")
+    :'<tr><td colspan="9" class="vacio">Todavía no hay envíos registrados.</td></tr>';
+  $$("#tbody-hist tr[data-l]").forEach(tr=>tr.querySelectorAll("[data-a]").forEach(b=>b.onclick=async()=>{
+    const body=b.dataset.a==="lo-envie"?{ids:[+tr.dataset.l],canal:"mail"}:{ids:[+tr.dataset.l],estado:b.dataset.a};
+    await api("/api/marcar",body);toast(b.dataset.a==="lo-envie"?"Registrado como enviado":"Estado actualizado");cargarHistorial();}));
+}
+["#filtro-h","#filtro-canal","#filtro-estado"].forEach(s=>$(s).addEventListener("input",pintarHistorial));
+
+/* ---------------- CONFIGURACIÓN ---------------- */
+$$("#subnav button").forEach(b=>b.onclick=()=>{$$("#subnav button").forEach(x=>x.classList.toggle("on",x===b));$("#"+b.dataset.s).scrollIntoView({behavior:"smooth",block:"start"});});
+async function cargarConfigTab(){
+  await cargarConfig();const c=S.cfg,y=c.yo,b=c.busqueda||{},e=c.envio||{};
+  ["nombre","telefono","email","zona","linkedin"].forEach(k=>$("#yo-"+k).value=y[k]||"");
+  $("#pf-fuente").value=b.fuente||"osm";$("#pf-limite").value=b.limite||10;$("#pf-radio").value=b.radio_km||4;$("#pf-enriquecer").checked=b.enriquecer_web!==false;
+  $("#pf-modo").value=e.modo_mail||"borrador";$("#pf-canal").value=e.canal_preferido||"auto";$("#pf-tanda").value=e.max_por_tanda||10;$("#pf-dia").value=e.max_por_dia||25;
+  $("#pf-pmin").value=e.pausa_min_seg||45;$("#pf-pmax").value=e.pausa_max_seg||120;
+  pintarCreds();pintarCVs();pintarPerfilesCfg();pintarRubros();await cargarPlantillas();
+}
+$("#btn-yo").onclick=async()=>{try{await api("/api/ajustes/yo",Object.fromEntries(["nombre","telefono","email","zona","linkedin"].map(k=>[k,$("#yo-"+k).value])));toast("Tus datos quedaron guardados");cargarConfig();}catch(e){toast(e.message);}};
+$("#btn-pref").onclick=async()=>{try{await api("/api/ajustes/preferencias",{fuente:$("#pf-fuente").value,limite:+$("#pf-limite").value,radio_km:+$("#pf-radio").value,enriquecer_web:$("#pf-enriquecer").checked,
+  modo_mail:$("#pf-modo").value,canal_preferido:$("#pf-canal").value,max_por_tanda:+$("#pf-tanda").value,max_por_dia:+$("#pf-dia").value,pausa_min_seg:+$("#pf-pmin").value,pausa_max_seg:+$("#pf-pmax").value});
+  S.fuente=$("#pf-fuente").value;toast("Preferencias guardadas");cargarConfig();}catch(e){toast(e.message);}};
+
+/* CVs */
+function pintarCVs(){
+  const L=S.cfg.cvs||[];const perf=S.cfg.perfiles;
+  $("#cv-lista").innerHTML=L.length?L.map(c=>`<div class="cv ${c.defecto?"def":""}" data-a="${esc(c.archivo)}" data-r="${esc(c.ruta)}">
+    <div class="nom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span>${esc(c.archivo)}</span></div>
+    <div class="ayuda">${kb(c.bytes)} · ${fmtFecha(c.modificado)}${c.defecto?' · <b style="color:var(--pink2)">por defecto</b>':""}</div>
+    <div class="chips">${c.perfiles.map(p=>`<span class="chip mini on">${esc(p)}</span>`).join("")||'<span class="ayuda" style="margin:0">Sin perfil asignado</span>'}</div>
+    <div class="row" style="margin-top:10px"><button class="btn sm cian" data-x="ver">Ver</button>${c.defecto?"":'<button class="btn sm" data-x="def">Usar por defecto</button>'}
+      <select data-x="asig" style="font-size:13px;padding:6px 8px"><option value="">Asignar a perfil…</option>${perf.map(p=>`<option value="${esc(p.nombre)}">${esc(p.nombre)}</option>`).join("")}</select>
+      <span class="spacer"></span><button class="btn sm peligro" data-x="borrar" aria-label="Borrar CV">✕</button></div></div>`).join("")
+    :'<div class="vacio" style="grid-column:1/-1"><b>Todavía no subiste ningún CV</b>Arrastrá tu PDF arriba.</div>';
+  $$("#cv-lista .cv").forEach(el=>{const a=el.dataset.a,r=el.dataset.r;
+    el.querySelector('[data-x="ver"]').onclick=()=>confirmar(a,`<iframe src="/cvs/${encodeURIComponent(a)}" title="Vista previa del CV"></iframe><p class="ayuda">¿No se ve? <a href="/cvs/${encodeURIComponent(a)}" target="_blank" rel="noopener">Abrilo en otra pestaña</a>.</p>`,{ancho:true,soloCerrar:true});
+    el.querySelector('[data-x="def"]')?.addEventListener("click",async()=>{await api("/api/cvs/defecto",{ruta:r});toast("CV por defecto actualizado");await cargarConfig();pintarCVs();});
+    el.querySelector('[data-x="asig"]').onchange=async ev=>{if(!ev.target.value)return;try{await api("/api/ajustes/perfil",{nombre:ev.target.value,cv:r});toast(`Asignado al perfil ${ev.target.value}`);await cargarConfig();pintarCVs();pintarPerfilesCfg();}catch(e){toast(e.message);}};
+    el.querySelector('[data-x="borrar"]').onclick=async()=>{if(!await confirmar("¿Borrar este CV?",`<b>${esc(a)}</b> se mueve a <code>cvs/.borrados</code> (no se pierde del todo).`,{si:"Borrar"}))return;
+      try{await api("/api/cvs/borrar",{archivo:a});toast("CV borrado");await cargarConfig();pintarCVs();}catch(e){toast(e.message,6000);}};});
+}
+async function subirArchivos(files){
+  for(const f of files){
+    if(!/\.pdf$/i.test(f.name)&&f.type!=="application/pdf"){toast(`${f.name} no es un PDF`);continue;}
+    if(f.size>12*1024*1024){toast(`${f.name} pesa más de 12 MB`);continue;}
+    const datos=await new Promise((ok,mal)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=mal;r.readAsDataURL(f);});
+    try{const r=await api("/api/cvs",{nombre:f.name,datos});toast(`Subido: ${archivo(r.ruta)}`);}catch(e){toast(e.message);}
+  }
+  await cargarConfig();pintarCVs();
+}
+$("#drop").onclick=()=>$("#file-cv").click();
+$("#drop").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();$("#file-cv").click();}};
+$("#file-cv").onchange=e=>{subirArchivos([...e.target.files]);e.target.value="";};
+["dragenter","dragover"].forEach(t=>$("#drop").addEventListener(t,e=>{e.preventDefault();$("#drop").classList.add("sobre");}));
+["dragleave","drop"].forEach(t=>$("#drop").addEventListener(t,e=>{e.preventDefault();$("#drop").classList.remove("sobre");}));
+$("#drop").addEventListener("drop",e=>subirArchivos([...e.dataTransfer.files]));
+
+/* perfiles */
+function pintarPerfilesCfg(){
+  const cvs=S.cfg.cvs||[];
+  $("#perfiles-cfg").innerHTML=S.cfg.perfiles.map(p=>`<div class="card" data-p="${esc(p.nombre)}">
+    <div class="row"><h3 style="text-transform:capitalize">${esc(p.nombre)}</h3><span class="spacer"></span><button class="btn sm peligro" data-x="borrar" aria-label="Borrar perfil">✕</button></div>
+    <label class="campo">Descripción</label><input type="text" data-k="descripcion" value="${esc(p.descripcion)}">
+    <label class="campo">CV</label><select data-k="cv" style="width:100%"><option value="">— ninguno —</option>${cvs.map(c=>`<option value="${esc(c.ruta)}" ${c.ruta===p.cv?"selected":""}>${esc(c.archivo)}</option>`).join("")}</select>
+    <label class="campo">Link público al CV (opcional, para WhatsApp)</label><input type="text" data-k="cv_link" value="${esc(p.cv_link)}" placeholder="https://drive.google.com/…">
+    <label class="campo">Rubros rápidos (separados por coma)</label><input type="text" data-k="rubros" value="${esc(p.rubros.join(", "))}">
+    <label class="campo">Zonas rápidas (separadas por coma)</label><input type="text" data-k="zonas" value="${esc(p.zonas.join(", "))}">
+    <div class="row"><button class="btn pri sm" data-x="guardar">Guardar perfil</button></div></div>`).join("");
+  $$("#perfiles-cfg .card").forEach(card=>{const n=card.dataset.p,v=k=>card.querySelector(`[data-k="${k}"]`).value;
+    card.querySelector('[data-x="guardar"]').onclick=async()=>{try{await api("/api/ajustes/perfil",{nombre:n,descripcion:v("descripcion"),cv:v("cv"),cv_link:v("cv_link"),
+      rubros:v("rubros").split(",").map(s=>s.trim()).filter(Boolean),zonas:v("zonas").split(",").map(s=>s.trim()).filter(Boolean)});toast(`Perfil ${n} guardado`);await cargarConfig();pintarCVs();}catch(e){toast(e.message);}};
+    card.querySelector('[data-x="borrar"]').onclick=async()=>{if(!await confirmar(`¿Borrar el perfil ${n}?`,"Se quita de la lista. Sus plantillas y su historial no se borran.",{si:"Borrar"}))return;
+      try{await api("/api/ajustes/perfil/borrar",{nombre:n});await cargarConfig();pintarPerfilesCfg();await cargarPlantillas();}catch(e){toast(e.message);}};});
+}
+$("#btn-nuevo-perfil").onclick=async()=>{
+  const ok=await confirmar("Nuevo perfil",`<label class="campo">Nombre corto</label><input type="text" id="np-nombre" placeholder="Ej: gastronomia">
+    <label class="campo">Descripción</label><input type="text" id="np-desc" placeholder="Ej: Mozo, cocina, barra">
+    <label class="campo">Copiar plantillas de</label><select id="np-base" style="width:100%">${S.cfg.perfiles.map(p=>`<option>${esc(p.nombre)}</option>`).join("")}</select>`,{si:"Crear"});
+  if(!ok)return;
+  try{const r=await api("/api/ajustes/perfil/nuevo",{nombre:$("#np-nombre").value,descripcion:$("#np-desc").value,copiar_de:$("#np-base").value});toast(`Perfil ${r.nombre} creado`);await cargarConfig();pintarPerfilesCfg();await cargarPlantillas();}catch(e){toast(e.message);}
+};
+
+/* plantillas */
+async function cargarPlantillas(){
+  S.plantillas=await api("/api/plantillas");
+  if(!S.pl.perfil||!S.plantillas.find(p=>p.perfil===S.pl.perfil))S.pl.perfil=S.plantillas[0]?.perfil;
+  $("#pl-perfil").innerHTML=S.plantillas.map(p=>`<option ${p.perfil===S.pl.perfil?"selected":""}>${esc(p.perfil)}</option>`).join("");
+  $("#pl-vars").innerHTML=S.cfg.variables.map(v=>`<button type="button" data-v="${v}" title="Insertar {${v}}">{${v}}</button>`).join("");
+  $$("#pl-vars button").forEach(b=>b.onclick=()=>insertarVar("{"+b.dataset.v+"}"));
+  abrirPlantilla();
+}
+function abrirPlantilla(){
+  const p=S.plantillas.find(x=>x.perfil===S.pl.perfil);if(!p)return;
+  const t=S.pl.tipo,txt=t==="asunto"?p.asunto:p[t];S.pl.original=txt;$("#pl-texto").value=txt;
+  $("#pl-texto").style.minHeight=t==="asunto"?"70px":"300px";
+  $$("#pl-tipo button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
+  previewPlantilla();
+}
+$("#pl-perfil").onchange=()=>{S.pl.perfil=$("#pl-perfil").value;abrirPlantilla();};
+$$("#pl-tipo button").forEach(b=>b.onclick=async()=>{if($("#pl-texto").value!==S.pl.original&&!await confirmar("Cambios sin guardar","Tenés cambios sin guardar en esta plantilla. ¿Los descartás?",{si:"Descartar"}))return;S.pl.tipo=b.dataset.t;abrirPlantilla();});
+function insertarVar(v){const ta=$("#pl-texto"),i=ta.selectionStart??ta.value.length,f=ta.selectionEnd??i;ta.value=ta.value.slice(0,i)+v+ta.value.slice(f);ta.focus();ta.selectionStart=ta.selectionEnd=i+v.length;previewPlantilla();}
+let tPl=null;
+function previewPlantilla(){clearTimeout(tPl);tPl=setTimeout(async()=>{
+  try{const r=await api("/api/plantillas/preview",{perfil:S.pl.perfil,tipo:S.pl.tipo,texto:$("#pl-texto").value});
+    $("#pl-vista").textContent=r.texto;$("#pl-vista-titulo").textContent=`Así queda (ejemplo: Otaku Corner · ${r.rubro})`;
+    $("#pl-avisos").innerHTML=r.avisos.map(a=>`<span class="warn">⚠ ${esc(a)}</span>`).join("<br>");}catch(e){}},250);}
+$("#pl-texto").addEventListener("input",previewPlantilla);
+$("#btn-plantilla").onclick=async()=>{try{const r=await api("/api/plantillas",{perfil:S.pl.perfil,tipo:S.pl.tipo,texto:$("#pl-texto").value});
+  toast(r.avisos.length?"Guardada, pero revisá los avisos":"Plantilla guardada");const t=$("#pl-texto").value;await cargarPlantillas();$("#pl-texto").value=t;S.pl.original=t;previewPlantilla();}catch(e){toast(e.message);}};
+$("#btn-plantilla-deshacer").onclick=()=>{$("#pl-texto").value=S.pl.original;previewPlantilla();};
+
+/* ganchos */
+function pintarRubros(){
+  $("#lista-rubros").innerHTML=S.cfg.rubros.map(r=>`<div class="rubro-fila" data-r="${esc(r.nombre)}"><input type="text" data-k="nombre" value="${esc(r.nombre)}" aria-label="Rubro">
+    <input type="text" data-k="gancho" value="${esc(r.gancho)}" aria-label="Gancho"><div class="row" style="flex-wrap:nowrap"><button class="btn sm pri" data-x="g">Guardar</button><button class="btn sm peligro" data-x="b" aria-label="Borrar rubro">✕</button></div></div>`).join("");
+  $$("#lista-rubros .rubro-fila").forEach(f=>{const ant=f.dataset.r,v=k=>f.querySelector(`[data-k="${k}"]`).value;
+    f.querySelector('[data-x="g"]').onclick=async()=>{try{await api("/api/ajustes/rubro",{anterior:ant,nombre:v("nombre"),gancho:v("gancho")});toast("Gancho guardado");await cargarConfig();pintarRubros();}catch(e){toast(e.message);}};
+    f.querySelector('[data-x="b"]').onclick=async()=>{if(!await confirmar("¿Borrar este rubro?",`Se quita <b>${esc(ant)}</b> de la lista de ganchos.`,{si:"Borrar"}))return;await api("/api/ajustes/rubro/borrar",{nombre:ant});await cargarConfig();pintarRubros();};});
+}
+$("#btn-nuevo-rubro").onclick=async()=>{const ok=await confirmar("Agregar rubro",`<label class="campo">Rubro</label><input type="text" id="nr-nombre" placeholder="Ej: panaderías">
+  <label class="campo">Gancho</label><input type="text" id="nr-gancho" placeholder="Ej: Me levanto temprano sin drama y tengo buena mano con la atención">`,{si:"Agregar"});
+  if(!ok)return;try{await api("/api/ajustes/rubro",{nombre:$("#nr-nombre").value,gancho:$("#nr-gancho").value});toast("Rubro agregado");await cargarConfig();pintarRubros();}catch(e){toast(e.message);}};
+
+/* claves */
+function pintarCreds(){const c=S.cfg.credenciales;
+  $("#env-user").value=c.mail_usuario||"";$("#env-pass").value="";$("#env-pass").placeholder=c.mail_password?"•••••••• (guardada)":"16 letras";
+  $("#cred-pass").innerHTML=c.mail_password?'<span class="ok">● Contraseña guardada</span>':'<span class="no">● Sin contraseña</span>';
+  $("#env-google").value="";$("#env-google").placeholder=c.google?`${c.google_mascara} (guardada)`:"AIza…";
+  $("#cred-google").innerHTML=c.google?`<span class="ok">● Clave guardada ${esc(c.google_mascara)}</span>`:'<span class="ayuda" style="margin:0">Sin clave: podés usar OpenStreetMap o Demo</span>';}
+function resultado(sel,ok,msg){const r=$(sel);r.className="resultado "+(ok?"bien":"mal");r.textContent=msg;}
+$("#btn-env-mail").onclick=async()=>{try{const r=await api("/api/env",{MAIL_USUARIO:$("#env-user").value,MAIL_PASSWORD:$("#env-pass").value});S.cfg.credenciales=r.credenciales;pintarCreds();toast("Datos de Gmail guardados en .env");}catch(e){toast(e.message);}};
+$("#btn-probar-gmail").onclick=async()=>{resultado("#res-gmail",true,"Probando…");$("#res-gmail").className="resultado bien";
+  try{const r=await api("/api/probar/gmail",{MAIL_USUARIO:$("#env-user").value,MAIL_PASSWORD:$("#env-pass").value});resultado("#res-gmail",r.ok,r.mensaje);}catch(e){resultado("#res-gmail",false,e.message);}};
+$("#btn-env-google").onclick=async()=>{if(!$("#env-google").value.trim())return toast("Pegá la clave primero");try{const r=await api("/api/env",{GOOGLE_PLACES_API_KEY:$("#env-google").value});S.cfg.credenciales=r.credenciales;pintarCreds();pintarFuente();toast("Clave de Google guardada");}catch(e){toast(e.message);}};
+$("#btn-probar-google").onclick=async()=>{resultado("#res-google",true,"Probando…");try{const r=await api("/api/probar/google",{GOOGLE_PLACES_API_KEY:$("#env-google").value});resultado("#res-google",r.ok,r.mensaje);}catch(e){resultado("#res-google",false,e.message);}};
+$("#btn-borrar-google").onclick=async()=>{if(!await confirmar("¿Quitar la clave de Google?","Se borra del archivo .env. Vas a poder seguir buscando con OpenStreetMap.",{si:"Quitar"}))return;
+  const r=await api("/api/env",{borrar:["GOOGLE_PLACES_API_KEY"]});S.cfg.credenciales=r.credenciales;pintarCreds();pintarFuente();toast("Clave quitada");};
+
+/* apagar */
+$("#btn-apagar").onclick=async()=>{if(!await confirmar("¿Cerrar Postuladorsito?","La app se apaga. Si hay un envío en curso, lo que ya salió queda registrado.",{si:"Cerrar app"}))return;
+  try{await api("/api/apagar",{});}catch(e){}$("#apagado").style.display="grid";};
+
+/* ---------------- COLA RÁPIDA DE WHATSAPP ----------------
+   No envía nada sola: abre el chat (wa.me) con el mensaje escrito, lo marca como enviado y deja listo el
+   siguiente. Vos tocás «Enviar» en WhatsApp. Entre chat y chat hay una espera mínima para no parecer spam. */
+const COLA={items:[],i:0,hechos:[],ultimo:0,espera:4000,origen:""};
+const getVar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+async function abrirCola(items,origen){
+  items=items.filter(x=>x.numero);
+  if(!items.length)return toast("No hay lugares con celular para la cola de WhatsApp");
+  Object.assign(COLA,{items,i:0,hechos:[],ultimo:0,origen});
+  $("#cola").style.display="grid";await pintarCola();
+}
+async function textoDe(it){if(!it.texto){const p=await api(`/api/preview/${it.id}`);it.texto=p.whatsapp;it.numero=it.numero||p.numero;}return it.texto;}
+const linkWA=(num,txt)=>`https://wa.me/${num}?text=${encodeURIComponent(txt)}`;
+async function pintarCola(){
+  const n=COLA.items.length,i=COLA.i,hoy=(S.cfg.whatsapp_hoy||0)+COLA.hechos.length;
+  $("#cola-barra").style.width=Math.round(Math.min(i,n)/n*100)+"%";$("#cola-contador").textContent=`${Math.min(i+1,n)} de ${n}`;
+  const deshacer=COLA.hechos.length?'<button class="btn" id="cola-deshacer">↶ Deshacer el último <kbd>Ctrl+Z</kbd></button>':"";
+  if(i>=n){
+    $("#cola-cuerpo").innerHTML=`<div class="cola-fin"><b>¡Cola terminada! 🎉</b><span class="ayuda">Abriste ${COLA.hechos.length} chat${COLA.hechos.length===1?"":"s"}. Hoy llevás ${hoy} WhatsApp${hoy===1?"":"s"}.</span></div>
+      <div class="cola-acciones">${deshacer}<span class="spacer"></span><button class="btn pri" id="cola-terminar">Terminar</button></div>`;
+    $("#cola-terminar").onclick=cerrarCola;$("#cola-deshacer")?.addEventListener("click",deshacerCola);return;
+  }
+  const it=COLA.items[i];$("#cola-cuerpo").innerHTML='<div class="vacio" style="padding:30px 0">Preparando…</div>';
+  const texto=await textoDe(it);
+  $("#cola-cuerpo").innerHTML=`<div class="cola-nombre">${esc(it.nombre)}</div>
+    <div class="ayuda" style="margin-top:4px">${esc([it.rubro,it.zona].filter(Boolean).join(" · "))} · <b style="color:var(--ink)">+${esc(it.numero)}</b></div>
+    <textarea id="cola-texto" aria-label="Mensaje">${esc(texto)}</textarea>
+    <div class="cola-acciones">
+      <a class="btn enorme" id="cola-abrir" target="_blank" rel="noopener" href="${esc(linkWA(it.numero,texto))}">Abrir WhatsApp y marcar enviado <kbd>Enter</kbd></a>
+    </div>
+    <div class="cola-acciones">
+      <button class="btn" id="cola-saltar">Saltar <kbd>→</kbd></button>
+      <button class="btn peligro" id="cola-descartar">No tiene WhatsApp</button>${deshacer}
+    </div>
+    <p class="ayuda">Se abre el chat con el mensaje ya escrito: tocá <b>Enviar</b> en WhatsApp y volvé acá, el siguiente ya está listo.
+      Hoy llevás <b>${hoy}</b>.${hoy>=20?' <span class="warn">Ya mandaste bastantes hoy: conviene seguir mañana para no parecer spam.</span>':""}</p>`;
+  const ta=$("#cola-texto"),a=$("#cola-abrir");
+  ta.addEventListener("input",()=>{it.texto=ta.value;a.href=linkWA(it.numero,ta.value);});
+  a.addEventListener("click",ev=>{if(!puedeAbrir()){ev.preventDefault();return;}marcarYSeguir(it);});
+  $("#cola-saltar").onclick=()=>{COLA.i++;pintarCola();};
+  $("#cola-descartar").onclick=async()=>{await api("/api/marcar",{ids:[it.id],estado:"descartado"});toast("Descartado");COLA.i++;pintarCola();};
+  $("#cola-deshacer")?.addEventListener("click",deshacerCola);
+  a.focus();
+}
+function puedeAbrir(){const falta=COLA.espera-(Date.now()-COLA.ultimo);
+  if(falta>0){toast(`Esperá ${Math.ceil(falta/1000)} s antes del próximo chat (así WhatsApp no te marca como spam)`);return false;}return true;}
+async function marcarYSeguir(it){
+  COLA.ultimo=Date.now();
+  try{await api("/api/marcar",{ids:[it.id],canal:"whatsapp"});}catch(e){toast("No pude registrarlo: "+e.message);return;}
+  COLA.hechos.push(COLA.i);COLA.i++;setTimeout(pintarCola,350);
+}
+async function deshacerCola(){
+  const idx=COLA.hechos.pop();if(idx===undefined)return;
+  await api("/api/deshacer",{id:COLA.items[idx].id});COLA.i=idx;toast("Listo: lo volví a dejar pendiente");pintarCola();
+}
+function cerrarCola(){$("#cola").style.display="none";cargarConfig();contadorWA();
+  if(!$("#v-revision").classList.contains("oculto"))cargarTanda();if(!$("#v-whatsapp").classList.contains("oculto"))cargarWA();}
+$("#cola-cerrar").onclick=cerrarCola;
+document.addEventListener("keydown",e=>{
+  if($("#cola").style.display!=="grid")return;
+  const enTexto=e.target.id==="cola-texto";
+  if(e.key==="Escape"){e.preventDefault();cerrarCola();}
+  else if(e.key==="Enter"&&!e.shiftKey){const a=$("#cola-abrir");if(a){e.preventDefault();if(puedeAbrir()){a.click();}}else if($("#cola-terminar")){e.preventDefault();cerrarCola();}}
+  else if(e.key==="ArrowRight"&&!enTexto&&$("#cola-saltar")){e.preventDefault();$("#cola-saltar").click();}
+  else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"&&!enTexto){e.preventDefault();deshacerCola();}
+});
+$("#btn-cola").onclick=async()=>{
+  const items=seleccionados().filter(l=>l.canal==="whatsapp").map(l=>({id:l.id,nombre:l.nombre,rubro:l.rubro,zona:l.zona,numero:l.destino}));
+  if(!items.length)return toast("Tildá lugares que tengan WhatsApp (canal WhatsApp) para armar la cola");
+  try{await api("/api/seleccion",payloadSel());}catch(e){}
+  abrirCola(items,"revision");
+};
+$("#btn-cola-wa").onclick=async()=>{const d=await api("/api/whatsapp");abrirCola(d.pendientes.map(l=>({id:l.id,nombre:l.nombre,rubro:l.rubro,zona:l.zona,numero:l.numero,texto:l.texto})),"whatsapp");};
+
+/* ---------------- PERSONALIZACIÓN ---------------- */
+const CONTROLES=[["--bg-primary","Fondo","Color de fondo de toda la app","color"],["--bg-card","Tarjetas","Paneles, ventanas y menús","color"],
+  ["--accent-primary","Acento principal","Botones, selección, pin y radio del mapa","color"],["--accent-secondary","Acento secundario","Links, mapa e información","color"],
+  ["--accent-tertiary","Acento de apoyo","Degradés y detalles","color"],["--text-primary","Texto","Color de las letras","color"],
+  ["--glow","Brillo neón","0 = sin brillo · 1.5 = mucho","range",0,1.5,0.05],["--glass","Opacidad de tarjetas","Menos = más efecto vidrio","range",0.3,1,0.01],
+  ["--borde","Bordes","Qué tan marcados se ven","range",0.05,0.5,0.01]];
+let AP={tema:TEMA_DEFECTO,custom:null},tAp=null;
+function leerApariencia(){try{const g=JSON.parse(localStorage.getItem(CLAVE_TEMA)||"null");if(g&&g.tema){AP=g;return true;}}catch(e){}return false;}
+function guardarApariencia(){try{localStorage.setItem(CLAVE_TEMA,JSON.stringify(AP));}catch(e){}
+  clearTimeout(tAp);tAp=setTimeout(()=>api("/api/ajustes/apariencia",{tema:AP.tema,custom:AP.custom||{}}).catch(()=>{}),700);}
+const valoresActuales=()=>Object.assign({},(TEMAS[AP.tema]||TEMAS[TEMA_DEFECTO]).v,AP.custom||{});
+function despuesDeTema(){
+  // el mapa nunca debe impedir que se guarde el tema: cualquier error acá se ignora
+  try{const claro=document.documentElement.dataset.claro==="1";
+    if(S.circulo&&S.circulo.setStyle){const c=getVar("--accent-primary");S.circulo.setStyle({color:c,fillColor:c});}
+    S.ponerEstiloMapa?.(claro?"claro":"neon");}catch(e){console.warn(e);}
+}
+function usarTema(id){AP={tema:id,custom:null};aplicarTema(id);guardarApariencia();despuesDeTema();pintarTemas();pintarControles();toast(`Tema: ${TEMAS[id].nombre}`);}
+function miniTema(v,nombre,desc,on,id){return`<button class="tema ${on?"on":""}" data-t="${id}" aria-pressed="${on}">
+  <div class="mini" style="background:${v["--bg-primary"]}"><div class="barra-t" style="background:${v["--text-primary"]};opacity:.85"></div>
+    <div class="chips-t"><i style="background:${v["--accent-secondary"]}"></i><i style="background:${v["--accent-tertiary"]}"></i><i style="background:${v["--ok"]||"#3c9"}"></i></div>
+    <div class="boton-t" style="background:linear-gradient(100deg,${v["--accent-primary"]},${v["--accent-tertiary"]});box-shadow:0 0 ${Math.round(14*(+v["--glow"]))}px ${v["--accent-primary"]}"></div>
+    <div class="tarjeta-t" style="background:${v["--bg-card"]};border:1px solid ${v["--accent-primary"]}66"></div></div>
+  <div class="pie-t"><b>${esc(nombre)}</b><small>${esc(desc)}</small></div></button>`;}
+function pintarTemas(){
+  let h=Object.entries(TEMAS).map(([id,t])=>miniTema(t.v,t.nombre,t.desc,AP.tema===id&&!AP.custom,id)).join("");
+  if(AP.custom)h=miniTema(valoresActuales(),"Mis colores","Tu combinación personalizada",true,"__custom")+h;
+  $("#temas").innerHTML=h;
+  $$("#temas .tema").forEach(b=>b.onclick=()=>{if(b.dataset.t!=="__custom")usarTema(b.dataset.t);});
+  $("#tema-actual").textContent=AP.custom?"Usando: Mis colores":`Usando: ${(TEMAS[AP.tema]||{}).nombre||""}`;
+}
+let tPint=null;
+function pintarControles(){
+  const v=valoresActuales();
+  $("#controles-color").innerHTML=CONTROLES.map(([k,n,d,tipo,min,max,step])=>`<div class="color-fila"><label for="c${k}">${n}<small>${d}</small></label>
+    ${tipo==="color"?`<input type="color" id="c${k}" data-k="${k}" value="${esc(v[k])}">`
+      :`<input type="range" id="c${k}" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${esc(v[k])}"><span class="val">${(+v[k]).toFixed(2)}</span>`}</div>`).join("");
+  $$("#controles-color input").forEach(inp=>inp.addEventListener("input",()=>{
+    const k=inp.dataset.k;AP.custom=AP.custom||{};AP.custom[k]=inp.value;
+    if(k==="--accent-primary")AP.custom["--on-accent"]=esClaro(inp.value)?"#111111":"#ffffff";
+    if(inp.type==="range")inp.nextElementSibling.textContent=(+inp.value).toFixed(2);
+    aplicarTema(AP.tema,AP.custom);guardarApariencia();despuesDeTema();clearTimeout(tPint);tPint=setTimeout(pintarTemas,150);}));
+}
+$("#btn-copiar-tema").onclick=()=>{AP.custom=Object.assign({},valoresActuales());aplicarTema(AP.tema,AP.custom);guardarApariencia();pintarTemas();pintarControles();toast("Listo: ahora podés retocar los colores");};
+$("#btn-restaurar-tema").onclick=()=>usarTema(TEMA_DEFECTO);
+
+$("#btn-primeros").onclick=()=>ir("config");
+/* ---------------- VERSIÓN WEB (multiusuario) ---------------- */
+function modoWeb(){
+  if(document.body.dataset.web)return;document.body.dataset.web="1";
+  $$("[data-abrir]").forEach(b=>b.remove());                     // en la web no hay carpetas locales
+  $$(".solo-local").forEach(e=>e.remove());
+  $$(".solo-web").forEach(e=>e.classList.remove("oculto"));
+  $$('#modo-mail option[value="eml"], #pf-modo option[value="eml"]').forEach(o=>o.remove());   // ni archivos .eml
+  $("#sub-config").innerHTML="Todo se guarda en tu cuenta: tus datos, tus CVs y tus claves (cifradas) no los ve nadie más.";
+  const aviso=document.createElement("p");aviso.className="ayuda";
+  aviso.innerHTML="En la versión web lo más seguro es <b>«Borradores en Gmail»</b>: los mails quedan en tu carpeta Borradores y los mandás vos. El envío automático puede no estar disponible si el servidor gratuito bloquea el correo saliente.";
+  $("#s-claves h3").after(aviso);
+}
+async function salir(){try{await api("/api/salir",{});}catch(e){}location.href="/ingreso";}
+$("#btn-salir2").onclick=salir;
+$("#btn-borrar-cuenta").onclick=async()=>{
+  const ok=await confirmar("¿Borrar tu cuenta?",`Se borran para siempre tu configuración, tus claves, tus CVs y todo tu historial. No se puede deshacer.
+    <label class="campo" for="bc-pass">Escribí tu contraseña para confirmar</label><input type="password" id="bc-pass" autocomplete="current-password">`,{si:"Borrar todo"});
+  if(!ok)return;
+  try{await api("/api/cuenta/borrar",{password:$("#bc-pass").value});location.href="/ingreso";}catch(e){toast(e.message,6000);}
+};
+
+/* ---------------- inicio ---------------- */
+cargarConfig().then(()=>{
+  if(!leerApariencia()&&S.cfg.apariencia&&S.cfg.apariencia.tema){let c=null;try{c=JSON.parse(S.cfg.apariencia.custom||"null");}catch(e){}
+    AP={tema:S.cfg.apariencia.tema,custom:c&&Object.keys(c).length?c:null};aplicarTema(AP.tema,AP.custom);try{localStorage.setItem(CLAVE_TEMA,JSON.stringify(AP));}catch(e){}}
+  iniciarMapa();contadorWA();if(S.cfg.yo.zona)irAZona(S.cfg.yo.zona,true);if(S.cfg.modo_red)$("#ayuda-mapa").textContent="Desde el celu por Wi-Fi, «Usar mi ubicación» no está disponible: usá el buscador o tocá el mapa.";})
+  .catch(e=>toast("No pude cargar la configuración: "+e.message,8000));
+api("/api/job").then(j=>{if(j.estado==="corriendo")seguirJob(j.tipo==="buscar"?"Buscando lugares…":"Procesando tanda…");}).catch(()=>{});
+}
+</script>
+</body>
+</html>

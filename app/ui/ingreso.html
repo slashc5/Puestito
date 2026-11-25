@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Postuladorsito · Ingresar</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2226%22 fill=%22%23ff2e97%22/><text x=%2250%22 y=%2271%22 font-size=%2262%22 font-family=%22Georgia%22 font-style=%22italic%22 font-weight=%22bold%22 text-anchor=%22middle%22 fill=%22white%22>P</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg-primary:#07040f;--bg-card:#1c1236;--accent-primary:#ff2e97;--accent-secondary:#22e4ff;--accent-tertiary:#9b5cff;--text-primary:#f5f0fb;
+  --on-accent:#fff;--danger:#ff5a76;--ok:#35e8a8;--glow:1;--glass:.55;--borde:.10;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;font:15px/1.5 "Outfit",system-ui,sans-serif;color:var(--text-primary);background:var(--bg-primary)}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:
+  radial-gradient(800px 500px at 10% -10%,color-mix(in srgb,var(--accent-primary) 24%,transparent),transparent 60%),
+  radial-gradient(700px 500px at 105% 110%,color-mix(in srgb,var(--accent-secondary) 18%,transparent),transparent 60%),var(--bg-primary)}
+.caja{width:min(420px,100%);background:color-mix(in srgb,var(--bg-card) calc(var(--glass)*100%),transparent);border:1px solid color-mix(in srgb,var(--text-primary) 12%,transparent);
+  border-radius:20px;padding:28px 26px;backdrop-filter:blur(14px);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.marca{font-family:"Kaushan Script",cursive;font-size:38px;text-align:center;line-height:1;margin:0 0 6px;
+  text-shadow:0 0 calc(var(--glow)*8px) var(--accent-primary),3px 3px 0 color-mix(in srgb,var(--accent-secondary) 55%,transparent)}
+.sub{text-align:center;color:color-mix(in srgb,var(--text-primary) 66%,var(--bg-primary));margin:0 0 22px;font-size:14px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;border:1px solid color-mix(in srgb,var(--text-primary) 15%,transparent);border-radius:12px;overflow:hidden;margin-bottom:18px}
+.tabs button{border:0;background:none;color:inherit;padding:10px;cursor:pointer;font:inherit;opacity:.7}
+.tabs button.on{opacity:1;background:linear-gradient(100deg,color-mix(in srgb,var(--accent-primary) 35%,transparent),color-mix(in srgb,var(--accent-tertiary) 30%,transparent));font-weight:600}
+label{display:block;font-weight:600;font-size:14px;margin:12px 0 6px}
+input{width:100%;font:inherit;font-size:16px;color:inherit;padding:11px 12px;border-radius:11px;border:1px solid color-mix(in srgb,var(--text-primary) 20%,transparent);
+  background:color-mix(in srgb,var(--bg-primary) 60%,transparent);outline:none}
+input:focus{border-color:var(--accent-secondary);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-secondary) 20%,transparent)}
+.ayuda{font-size:12.5px;color:color-mix(in srgb,var(--text-primary) 60%,var(--bg-primary));margin-top:5px}
+button.pri{width:100%;margin-top:20px;border:0;border-radius:12px;padding:13px;font:inherit;font-weight:700;font-size:16px;cursor:pointer;color:var(--on-accent);
+  background:linear-gradient(100deg,var(--accent-primary),var(--accent-tertiary));box-shadow:0 0 calc(var(--glow)*20px) color-mix(in srgb,var(--accent-primary) calc(var(--glow)*45%),transparent)}
+button.pri:disabled{opacity:.6;cursor:wait}
+.error{display:none;margin-top:14px;padding:10px 12px;border-radius:11px;font-size:14px;background:color-mix(in srgb,var(--danger) 12%,transparent);border:1px solid color-mix(in srgb,var(--danger) 40%,transparent)}
+.priv{margin-top:18px;font-size:12.5px;line-height:1.45;color:color-mix(in srgb,var(--text-primary) 58%,var(--bg-primary))}
+.oculto{display:none}
+</style>
+<script src="/temas.js"></script>
+</head>
+<body>
+<main class="caja">
+  <h1 class="marca">Postuladorsito</h1>
+  <p class="sub">Tu búsqueda de laburo, en piloto automático</p>
+  <div class="tabs" role="tablist"><button class="on" data-m="ingresar" role="tab" aria-selected="true">Ingresar</button><button data-m="registrarse" role="tab" aria-selected="false">Crear cuenta</button></div>
+  <form id="form" autocomplete="on">
+    <label for="usuario">Usuario</label>
+    <input id="usuario" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+    <label for="password">Contraseña</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required minlength="8">
+    <div class="ayuda oculto" id="ayuda-pass">Mínimo 8 caracteres. No uses la contraseña de tu Gmail.</div>
+    <div id="bloque-codigo" class="oculto">
+      <label for="codigo">Código de invitación</label>
+      <input id="codigo" autocomplete="off" spellcheck="false">
+      <div class="ayuda">Te lo pasa quien te compartió el link.</div>
+    </div>
+    <button class="pri" type="submit" id="enviar">Ingresar</button>
+    <div class="error" id="error" role="alert"></div>
+  </form>
+  <p class="priv">Cada cuenta tiene sus propios datos: tu Gmail, tus claves, tus CVs y tu historial no los ve nadie más.
+    Las claves se guardan cifradas. Podés borrar tu cuenta y todos tus datos cuando quieras desde Configuración.</p>
+</main>
+<script>
+{
+let modo="ingresar";
+const $=s=>document.querySelector(s);
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+  modo=b.dataset.m;
+  document.querySelectorAll(".tabs button").forEach(x=>{x.classList.toggle("on",x===b);x.setAttribute("aria-selected",x===b);});
+  const reg=modo==="registrarse";
+  $("#bloque-codigo").classList.toggle("oculto",!reg);$("#ayuda-pass").classList.toggle("oculto",!reg);
+  $("#password").autocomplete=reg?"new-password":"current-password";$("#enviar").textContent=reg?"Crear mi cuenta":"Ingresar";$("#error").style.display="none";
+});
+$("#form").onsubmit=async e=>{
+  e.preventDefault();
+  const b=$("#enviar");b.disabled=true;$("#error").style.display="none";
+  try{
+    const r=await fetch("/api/"+modo,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({usuario:$("#usuario").value,password:$("#password").value,codigo:$("#codigo").value})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(j.error||"No se pudo ingresar");
+    location.href="/";
+  }catch(err){$("#error").textContent=err.message;$("#error").style.display="block";b.disabled=false;}
+};
+}
+</script>
+</body>
+</html>

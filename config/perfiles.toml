@@ -1,0 +1,67 @@
+# ============================================================
+#  PERFILES  = qué CV y qué tono de mensaje usar
+#  RUBROS    = qué buscar y cómo adaptar el mensaje a cada rubro
+# ============================================================
+# Para agregar un perfil: copiá un bloque [perfiles.xxx] y cambiá los valores.
+# Para agregar un rubro:  copiá un bloque [rubros."xxx"].
+
+# ---------------- PERFILES ----------------
+
+[perfiles.comercial]
+descripcion       = "Atención al público / ventas / gastronomía"
+cv                = "cvs/CV_comercial.pdf"
+cv_link           = ""   # opcional: link público (Drive) al CV, se agrega en WhatsApp
+plantilla_mail    = "plantillas/comercial_mail.txt"
+plantilla_whatsapp = "plantillas/comercial_whatsapp.txt"
+asunto            = "Postulación para {lugar} – {mi_nombre}"
+rubros            = ["tiendas de anime", "locales de tecnología", "bares", "cafeterías"]
+zonas             = ["Lomas de Zamora", "Temperley", "Banfield", "Adrogué"]
+
+[perfiles.tecnico]
+descripcion       = "Programación / desarrollo / soporte IT"
+cv                = "cvs/CV_tecnico.pdf"
+cv_link           = ""
+plantilla_mail    = "plantillas/tecnico_mail.txt"
+plantilla_whatsapp = "plantillas/tecnico_whatsapp.txt"
+asunto            = "Desarrollador/a interesado/a en {lugar} – {mi_nombre}"
+rubros            = ["empresas de programación", "soporte técnico"]
+zonas             = ["Lomas de Zamora", "Temperley", "CABA"]
+
+# ---------------- RUBROS ----------------
+# google_query : texto que se busca en Google Places ({zona} se reemplaza)
+# osm          : etiquetas de OpenStreetMap  "clave=valor"
+# gancho       : frase que se inserta en el mensaje para que suene personalizado.
+#                Escribila en primera persona y sin punto final (el punto lo pone la plantilla).
+
+[rubros."tiendas de anime"]
+google_query = "tienda de anime y comics en {zona}"
+osm          = ["shop=anime", "shop=comics", "shop=games", "shop=collector", "shop=toys"]
+gancho       = "Miro anime y leo manga hace años, así que conozco bastante lo que se vende y lo que busca la gente que entra"
+
+[rubros."locales de tecnología"]
+google_query = "local de tecnología celulares computación en {zona}"
+osm          = ["shop=electronics", "shop=computer", "shop=mobile_phone", "shop=video_games"]
+gancho       = "Me llevo muy bien con celulares, compus y accesorios, y me sale natural explicarle a alguien qué le conviene"
+
+[rubros."bares"]
+google_query = "bar en {zona}"
+osm          = ["amenity=bar", "amenity=pub", "amenity=biergarten"]
+gancho       = "No tengo drama con trabajar de noche o los fines de semana, y me muevo bien cuando el lugar se llena"
+
+[rubros."cafeterías"]
+google_query = "cafetería en {zona}"
+osm          = ["amenity=cafe"]
+gancho       = "Me gusta atender al público y trabajar a buen ritmo, sobre todo en los horarios de más movimiento"
+
+[rubros."empresas de programación"]
+google_query = "empresa de desarrollo de software en {zona}"
+osm          = ["office=it", "office=software", "office=company", "craft=computer"]
+gancho       = "Vengo programando hace un tiempo, tengo algunos proyectos hechos y quiero meterme en un equipo donde aprenda de gente con más experiencia"
+
+[rubros."soporte técnico"]
+google_query = "servicio técnico de computadoras en {zona}"
+osm          = ["shop=computer", "craft=electronics_repair", "shop=electronics"]
+gancho       = "Sé armar y configurar compus, instalar sistemas y resolver los problemas de siempre que trae la gente"
+
+# Rubros no listados acá también funcionan: se usa el texto tal cual
+# como búsqueda (en Google) y un gancho genérico.

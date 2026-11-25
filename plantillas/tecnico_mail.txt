@@ -1,0 +1,11 @@
+Hola, ¿qué tal?
+
+Soy {mi_nombre}, vivo en {mi_zona} y me dedico a la programación. Les escribo por si en {lugar} están buscando o van a necesitar sumar a alguien. {gancho}.
+
+Adjunto el CV: ahí está lo que sé usar y en qué estuve trabajando. Me sirve algo junior, una pasantía o proyectos puntuales, presencial en zona sur o remoto.
+
+Si tienen alguna búsqueda abierta, o les puede servir más adelante, respóndanme y lo charlamos.
+
+Saludos,
+{mi_nombre}
+{mi_telefono} · {mi_email} {mi_linkedin}
