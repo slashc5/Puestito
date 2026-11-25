@@ -835,10 +835,10 @@ function iniciarMapa(){
   // Tiles de CARTO: gratis y sin clave (tile.openstreetmap.org bloquea pedidos desde hosts como Render).
   // {s} = subdominios a–d · {r} = "@2x" en pantallas retina (CARTO sí tiene tiles HD). La atribución es obligatoria.
   const ATRIB='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
-  const opcTiles=extra=>Object.assign({subdomains:"abcd",maxZoom:20,maxNativeZoom:20,attribution:ATRIB},extra);
+  const opcTiles=extra=>Object.assign({subdomains:"abcd",maxZoom:20,maxNativeZoom:18,attribution:ATRIB},extra);
   const CAPAS={
-    neon: L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",opcTiles({className:"tiles-vice"})),
-    claro:L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",opcTiles({className:"tiles-claro"}))
+    neon: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",opcTiles({className:"tiles-vice"})),
+    claro:L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",opcTiles({className:"tiles-claro"}))
   };
   // Capa de tinte Vice City: va entre los tiles (z 200) y el círculo/pin (z 400/600), siempre del tamaño de la vista
   const tinte=S.mapa.createPane("tinte"); tinte.style.zIndex=250;
